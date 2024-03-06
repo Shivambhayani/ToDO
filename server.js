@@ -1,10 +1,15 @@
 const dotenv = require('dotenv')
+const db = require('./utils/database.js')
 
 dotenv.config({
     path: './.env'
 })
 
 const app = require('./app.js')
+
+db.sync({ alter: false, force: false })
+    .then(() => console.log('sync succesfully'))
+    .catch((e) => console.log('Error in syncing', e))
 
 //  
 // const taskModel = require('./model/taskModel.js')
