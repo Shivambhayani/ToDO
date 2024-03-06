@@ -15,9 +15,7 @@ const db = new sequelize('to_do', 'root', 'password$1', {
 })
 
 
-db.sync({ alter: false, force: false })
-    .then(() => console.log('sync succesfully'))
-    .catch((e) => console.log('Error in syncing', e))
+
 
 
 
