@@ -19,7 +19,9 @@ const signIn = async (req, res) => {
             name, email, password, tokens: token  // store token in databse
         })
 
-        sendToken(data, token, 201, res)
+        const userWithoutPassword = { ...data.toJSON(), password: undefined };
+        sendToken(userWithoutPassword, token, 200, res);
+        // sendToken(data, token, 201, res)
     } catch (error) {
 
         return res.status(400).json({
