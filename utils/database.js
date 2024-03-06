@@ -4,7 +4,7 @@ const sequelize = Sequelize;
 
 
 const db = new sequelize('to_do', 'root', 'password$1', {
-    host: 'localhost',
+    host: '',
     dialect: 'mysql',
     port: 3306,
     pool: {
