@@ -3,7 +3,7 @@ const repetedTasks = require('../model/repetedTaskModel')
 const { getLastUserIdFromDatabase } = require('./taskController')
 
 const findTaskByUserId = async (userId, id) => {
-    return await repetedTasks.findOne({ where: { userId, id } });
+    return await repetedTasks.findOne({ where: { id, userId } });
 };
 
 
@@ -166,7 +166,20 @@ const relationship = async (req, res) => {
     }
 }
 
+const getTaskById = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const taskId = req.params.id;
+        const task = await findTaskByUserId(userId, taskId);
 
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.status(200).json({ data: task })
+    } catch (error) {
+        return res.status(400).json(error.message)
+    }
+}
 
 module.exports = {
     createTask,
@@ -175,5 +188,6 @@ module.exports = {
     updateTaskById,
     deleteTask,
     deleteTaskById,
-    relationship
+    relationship,
+    getTaskById
 }

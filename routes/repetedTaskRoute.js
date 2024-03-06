@@ -35,4 +35,8 @@ router
     .route('/relation')
     .get(repeatTaskController.relationship)
 
+router
+    .route('/:id')
+    .get(verifyToken, repeatTaskController.getTaskById)
+
 module.exports = router;
