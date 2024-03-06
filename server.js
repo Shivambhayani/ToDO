@@ -7,7 +7,7 @@ dotenv.config({
 
 const app = require('./app.js')
 
-db.sync({ alter: false, force: false })
+db.authenticate()
     .then(() => console.log('sync succesfully'))
     .catch((e) => console.log('Error in syncing', e))
 
