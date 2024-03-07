@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs')
 const User = require('../model/userModel')
 
 const generateToken = (id) => {
+
     return jwt.sign({ id: id }, process.env.ACESS_TOKEN, {
         expiresIn: process.env.EXPIRE
     });
