@@ -4,24 +4,18 @@ const repeatTaskController = require('../controller/repeatTaskController.js');
 
 const { verifyToken } = require('../middleware/authMiddleware.js');
 
+
+
+
+//  routes 
 router
     .route('/create')
     .post(verifyToken, repeatTaskController.createTask)
-
-router
-    .route('/me')
-    .patch(verifyToken, repeatTaskController.updateTask)
 
 
 router
     .route('/getall')
     .get(verifyToken, repeatTaskController.getAllTask)
-
-
-
-router
-    .route('/me')
-    .delete(verifyToken, repeatTaskController.deleteTask)
 
 router
     .route('/:id')
