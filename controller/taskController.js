@@ -1,17 +1,15 @@
-const { where } = require('sequelize');
-const tasks = require('../model/taskModel')
-const User = require('../model/userModel')
+const { where } = require("sequelize");
+const tasks = require("../model/taskModel");
+const User = require("../model/userModel");
 
-//  new user cerated 
+//  new user cerated
 const getLastUserIdFromDatabase = async () => {
     try {
-
-        const lastUser = await User.findOne({ order: [['id', 'DESC']] });
+        const lastUser = await User.findOne({ order: [["id", "DESC"]] });
         if (lastUser) {
             return lastUser.id;
         } else {
-
-            return
+            return;
         }
     } catch (error) {
         throw error;
@@ -23,51 +21,51 @@ const findTaskByUserId = async (userId, id) => {
 };
 
 const createTask = async (req, res) => {
-
     try {
         const { title, description, status } = req.body;
         const userId = req.user.id;
         console.log(userId);
         const data = await tasks.create({
-            title, description, status, userId
-        })
+            title,
+            description,
+            status,
+            userId,
+        });
 
         res.status(201).json({
-            status: 'success',
-            data: data
-        })
-
+            status: "success",
+            data: data,
+        });
     } catch (error) {
         return res.status(403).json({
-            status: 'fail',
-            message: error.message
-        })
+            status: "fail",
+            message: error.message,
+        });
     }
-}
+};
 
 const relationship = async (req, res) => {
     try {
         const data = await tasks.findAll({
-            attributes: ['title', 'description', 'status'],
+            attributes: ["title", "description", "status"],
             include: [
                 {
                     model: User,
-                    attributes: ['name', 'email']
-                }
-            ]
-        })
+                    attributes: ["name", "email"],
+                },
+            ],
+        });
         res.status(200).json({
-            status: 'success',
-            data: data
-        })
-
+            status: "success",
+            data: data,
+        });
     } catch (error) {
         return res.status(400).json({
             status: "fail",
-            message: error.message
-        })
+            message: error.message,
+        });
     }
-}
+};
 
 const getTaskById = async (req, res) => {
     try {
@@ -77,44 +75,42 @@ const getTaskById = async (req, res) => {
 
         if (!task) {
             return res.status(404).json({
-                status: 'fail',
-                message: 'Task not found'
+                status: "fail",
+                message: "Task not found",
             });
         }
         res.status(200).json({
-            status: 'success',
-            data: task
-        })
+            status: "success",
+            data: task,
+        });
     } catch (error) {
         return res.status(400).json({
             status: "fail",
-            message: error.message
-        })
+            message: error.message,
+        });
     }
-}
+};
 
 const getAllTask = async (req, res) => {
     try {
         const userId = req.user.id;
         console.log(userId);
-        const data = await tasks.findAll({ where: { userId } })
+        const data = await tasks.findAll({ where: { userId } });
         // console.log(data);
         // if (data.length === 0) {
-        //     return res.json({    
+        //     return res.json({
         //         status: 'fail',
         //         message: 'No tasks found. Create a new task'
         //     });
         // }
-        res.status(200).json({ status: 'success', data: data })
-    }
-    catch (error) {
+        res.status(200).json({ status: "success", data: data });
+    } catch (error) {
         return res.status(500).json({
             status: "fail",
-            message: error.message
-        })
+            message: error.message,
+        });
     }
-}
-
+};
 
 const deleteTaskById = async (req, res) => {
     try {
@@ -126,23 +122,23 @@ const deleteTaskById = async (req, res) => {
 
         if (!task) {
             return res.status(404).json({
-                status: 'fail',
-                message: 'Task not found'
+                status: "fail",
+                message: "Task not found",
             });
         }
 
         await task.destroy();
-        await task.save()
+        await task.save();
 
         res.status(200).json({
-            status: 'success',
-            message: 'Task deleted successfully'
+            status: "success",
+            message: "Task deleted successfully",
         });
     } catch (error) {
         return res.status(400).json({
             status: "fail",
-            message: error.message
-        })
+            message: error.message,
+        });
     }
 };
 
@@ -155,8 +151,8 @@ const updateTaskById = async (req, res) => {
 
         if (!task) {
             return res.status(404).json({
-                status: 'fail',
-                message: 'Task not found !'
+                status: "fail",
+                message: "Task not found !",
             });
         }
 
@@ -174,12 +170,12 @@ const updateTaskById = async (req, res) => {
 
         await task.save();
 
-        res.status(200).json({ status: 'success', data: task });
+        res.status(200).json({ status: "success", data: task });
     } catch (error) {
         return res.status(500).json({
             status: "fail",
-            message: error.message
-        })
+            message: error.message,
+        });
     }
 };
 
@@ -191,28 +187,5 @@ module.exports = {
     updateTaskById,
     deleteTaskById,
     findTaskByUserId,
-    getLastUserIdFromDatabase
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    getLastUserIdFromDatabase,
+};

@@ -1,9 +1,8 @@
-const Sequelize = require('sequelize');
-const bcrypt = require('bcryptjs')
-const db = require('../utils/database')
+const Sequelize = require("sequelize");
+const bcrypt = require("bcryptjs");
+const db = require("../utils/database");
 
-const userModel = db.define('users', {
-
+const userModel = db.define("users", {
     id: {
         type: Sequelize.BIGINT,
         autoIncrement: true,
@@ -13,15 +12,12 @@ const userModel = db.define('users', {
     name: {
         type: Sequelize.STRING,
         allowNull: false,
-        set(value = '') {
-
+        set(value = "") {
             if (value.length === 0) {
-                throw new Error('name must be required')
+                throw new Error("name must be required");
             }
-            this.setDataValue('name', value)
-        }
-
-
+            this.setDataValue("name", value);
+        },
     },
     email: {
         type: Sequelize.STRING,
@@ -29,13 +25,15 @@ const userModel = db.define('users', {
         unique: true,
 
         set(value) {
-            if (!/^[\w-\.]+\+?[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g.test(value.trim())) {
-                throw new Error('Provide a valide email address !')
+            if (
+                !/^[\w-\.]+\+?[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g.test(
+                    value.trim()
+                )
+            ) {
+                throw new Error("Provide a valide email address !");
             }
-            this.setDataValue('email', value)
-
-        }
-
+            this.setDataValue("email", value);
+        },
     },
     password: {
         type: Sequelize.STRING,
@@ -44,11 +42,11 @@ const userModel = db.define('users', {
         set(value) {
             if (value.length > 6) {
                 const hash = bcrypt.hashSync(value, 10);
-                this.setDataValue('password', hash);
+                this.setDataValue("password", hash);
             } else {
-                throw new Error('Password must be more than 6 letter')
+                throw new Error("Password must be more than 6 letter");
             }
-        }
+        },
     },
-})
+});
 module.exports = userModel;
