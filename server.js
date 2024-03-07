@@ -1,5 +1,6 @@
 const dotenv = require('dotenv')
 const db = require('./utils/database.js')
+const { createDailyTask } = require('./controller/repeatTaskController.js')
 
 dotenv.config({
     path: './.env'
@@ -19,8 +20,11 @@ repeatedTasks
 const userModel = require('./model/userModel.js')
 userModel
 
+// const cron = require('node-cron')
 
-
+// cron.schedule('* * * * * *', () => {
+//     createDailyTask()
+// });
 
 
 

@@ -26,8 +26,8 @@ const createTask = async (req, res) => {
 
     try {
         const { title, description, status } = req.body;
-        const userId = await getLastUserIdFromDatabase()
-
+        const userId = req.user.id;
+        console.log(userId);
         const data = await tasks.create({
             title, description, status, userId
         })
@@ -71,8 +71,7 @@ const relationship = async (req, res) => {
 
 const getTaskById = async (req, res) => {
     try {
-        // const userId = req.user.id;
-        const userId = await getLastUserIdFromDatabase()
+        const userId = req.user.id;
         const taskId = req.params.id;
         const task = await findTaskByUserId(userId, taskId);
 
@@ -96,10 +95,10 @@ const getTaskById = async (req, res) => {
 
 const getAllTask = async (req, res) => {
     try {
-        const userId = await getLastUserIdFromDatabase()
-        // console.log(userId);
+        const userId = req.user.id;
+        console.log(userId);
         const data = await tasks.findAll({ where: { userId } })
-        console.log(data);
+        // console.log(data);
         // if (data.length === 0) {
         //     return res.json({    
         //         status: 'fail',
@@ -119,8 +118,8 @@ const getAllTask = async (req, res) => {
 
 const deleteTaskById = async (req, res) => {
     try {
-        // const userId = req.user.id;
-        const userId = await getLastUserIdFromDatabase()
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
 
         const taskId = req.params.id;
         const task = await findTaskByUserId(userId, taskId);
@@ -149,8 +148,8 @@ const deleteTaskById = async (req, res) => {
 
 const updateTaskById = async (req, res) => {
     try {
-        // const userId = req.user.id;
-        const userId = await getLastUserIdFromDatabase()
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
         const taskId = req.params.id;
         let task = await findTaskByUserId(userId, taskId);
 

@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs')
-const User = require('../model/userModel')
+const User = require('../model/userModel');
+const { where } = require('sequelize');
 
 const generateToken = (id) => {
 
@@ -28,11 +29,11 @@ const verifyToken = async (req, res, next) => {
         if (!token) {
             return res.status(403).json({ message: "No token provided!" });
         }
-        // console.log(token);
+        // console.log('token =>>>>', token);
         const decoded = jwt.verify(token, process.env.ACESS_TOKEN);
-        // console.log('', decoded);
-        const user = await User.findOne({ id: decoded.id, 'tokens.token': token })
-        // console.log(user);
+        // console.log('decode===>', decoded);
+        const user = await User.findOne({ where: { id: decoded.id } })
+        // console.log("user=>>>>>>", user);
         req.token = token;
         req.user = user;
         next();

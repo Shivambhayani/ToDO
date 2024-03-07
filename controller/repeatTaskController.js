@@ -11,8 +11,8 @@ const createTask = async (req, res) => {
 
     try {
         const { title, description, task_frequency, status } = req.body;
-        // const userId = req.user.id;
-        const userId = await getLastUserIdFromDatabase()
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
 
         const data = await repetedTasks.create({
             title, description, task_frequency, status, userId
@@ -33,8 +33,8 @@ const createTask = async (req, res) => {
 
 const getAllTask = async (req, res) => {
     try {
-        // const userId = req.user.id;
-        const userId = await getLastUserIdFromDatabase()
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
         const data = await repetedTasks.findAll({ where: { userId } })
         if (data.length === 0) {
             return res.status(404).json({
@@ -56,8 +56,8 @@ const getAllTask = async (req, res) => {
 
 const deleteTaskById = async (req, res) => {
     try {
-        // const userId = req.user.id;
-        const userId = await getLastUserIdFromDatabase()
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
         const taskId = req.params.id;
         const task = await findTaskByUserId(userId, taskId);
 
@@ -86,8 +86,8 @@ const deleteTaskById = async (req, res) => {
 
 const updateTaskById = async (req, res) => {
     try {
-        // const userId = req.user.id;
-        const userId = await getLastUserIdFromDatabase()
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
         const taskId = req.params.id;
         let task = await findTaskByUserId(userId, taskId);
 
@@ -153,8 +153,8 @@ const relationship = async (req, res) => {
 
 const getTaskById = async (req, res) => {
     try {
-        // const userId = req.user.id;
-        const userId = await getLastUserIdFromDatabase()
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
         const taskId = req.params.id;
         const task = await findTaskByUserId(userId, taskId);
 
@@ -176,13 +176,42 @@ const getTaskById = async (req, res) => {
     }
 }
 
+//  daily task
+
+async function createDailyTask(userId, res) {
+    try {
+        const task = await repetedTasks.create({
+            title: "Daily scrum",
+            description: "attend scrum",
+            userId: userId
+
+        });
+
+        // res.status(200).json({
+        //     data: task
+        // })
+        console.log('Task saved:', ...task.toJSON());
+
+
+    } catch (error) {
+        // return res.status(400).json({
+        //     status: "fail",
+        //     message: error.message
+        // })
+        console.error('Error creating task:', error);
+
+    }
+}
+
+
 module.exports = {
     createTask,
     getAllTask,
     updateTaskById,
     deleteTaskById,
     relationship,
-    getTaskById
+    getTaskById,
+    createDailyTask
 }
 
 
