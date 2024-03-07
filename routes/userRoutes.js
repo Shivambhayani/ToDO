@@ -8,11 +8,11 @@ const router = express.Router();
 
 router
     .route('/signup')
-    .post(userController.signIn)
+    .post(userController.signUp)
 
 router
     .route('/login')
-    .post(verifyToken, userController.login)
+    .post(userController.login)
 
 router
     .route('/:id')

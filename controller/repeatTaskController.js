@@ -23,103 +23,79 @@ const createTask = async (req, res) => {
             data: data
         })
     } catch (error) {
-        return res.status(403).json({ error: 'Not Authorized !' })
+        return res.status(403).json({
+            status: 'fail',
+            error: error.message
+        })
     }
 
 }
 
-const updateTask = async (req, res) => {
-    try {
-        const userId = req.user.id;
-
-        const task = await repetedTasks.findOne({ where: { userId } })
-        if (!task) {
-            return res.status(404).json({ message: 'Task not found for authorized user ' });
-        }
-
-        // const userId = task.userId;
-        const { title, description, task_frequency, status } = req.body;
-        // Update task fields if res.body provided
-        if (title !== undefined) {
-            task.title = title;
-        }
-        if (description !== undefined) {
-            task.description = description;
-        }
-        if (task_frequency !== undefined) {
-            task.task_frequency = task_frequency
-        }
-        if (status !== undefined) {
-            task.status = status;
-        }
-
-
-        await task.save();
-
-        res.status(200).json({ status: 'success', data: task });
-    } catch (error) {
-        return res.status(500).json(error.message);
-    }
-};
-
 const getAllTask = async (req, res) => {
     try {
-        const userId = req.user.id;
+        // const userId = req.user.id;
+        const userId = await getLastUserIdFromDatabase()
         const data = await repetedTasks.findAll({ where: { userId } })
         if (data.length === 0) {
-            return res.status(404).json({ message: 'No tasks found. Create a new task' });
+            return res.status(404).json({
+                status: 'fail',
+                message: 'No tasks found. Create a new task'
+            });
         }
         res.status(200).json({ status: 'success', data: data })
     }
     catch (error) {
-        return res.status(400).json(error.message)
+        return res.status(400).json({
+            status: "fail",
+            message: error.message
+        })
     }
 };
 
-const deleteTask = async (req, res) => {
-    try {
-        const userId = req.user.id;
 
-        const task = await repetedTasks.findOne({ where: { userId } })
-        if (!task) {
-            return res.status(404).json({ message: 'Task not found' });
-        }
-
-        await task.destroy();
-
-        res.status(200).json({ message: 'Task deleted successfully' });
-    } catch (error) {
-        return res.status(400).json(error.message);
-    }
-};
 
 const deleteTaskById = async (req, res) => {
     try {
-        const userId = req.user.id;
+        // const userId = req.user.id;
+        const userId = await getLastUserIdFromDatabase()
         const taskId = req.params.id;
         const task = await findTaskByUserId(userId, taskId);
 
         if (!task) {
-            return res.status(404).json({ message: 'Task not found' });
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Task not found'
+            });
         }
 
         await task.destroy();
+        await task.save()
 
-        res.status(200).json({ message: 'Task deleted successfully' });
+        res.status(200).json({
+            status: 'success',
+            message: 'Task deleted successfully'
+        });
     } catch (error) {
-        return res.status(400).json(error.message);
+        return res.status(400).json({
+            status: "fail",
+            message: error.message
+        })
     }
 };
 
 
 const updateTaskById = async (req, res) => {
     try {
-        const userId = req.user.id;
+        // const userId = req.user.id;
+        const userId = await getLastUserIdFromDatabase()
         const taskId = req.params.id;
         let task = await findTaskByUserId(userId, taskId);
 
         if (!task) {
-            return res.status(404).json({ message: 'Task not found for authorized user' });
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Task not found for authorized user'
+            });
         }
 
         const { title, description, task_frequency, status } = req.body;
@@ -139,9 +115,15 @@ const updateTaskById = async (req, res) => {
 
         await task.save();
 
-        res.status(200).json({ status: 'success', data: task });
+        res.status(200).json({
+            status: 'success',
+            data: task
+        });
     } catch (error) {
-        return res.status(400).json(error.message);
+        return res.status(500).json({
+            status: "fail",
+            message: error.message
+        })
     }
 };
 
@@ -162,32 +144,45 @@ const relationship = async (req, res) => {
         })
 
     } catch (error) {
-        return res.status(400).json(error.message)
+        return res.status(400).json({
+            status: "fail",
+            message: error.message
+        })
     }
 }
 
 const getTaskById = async (req, res) => {
     try {
-        const userId = req.user.id;
+        // const userId = req.user.id;
+        const userId = await getLastUserIdFromDatabase()
         const taskId = req.params.id;
         const task = await findTaskByUserId(userId, taskId);
 
         if (!task) {
-            return res.status(404).json({ message: 'Task not found' });
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Task not found'
+            });
         }
-        res.status(200).json({ data: task })
+        res.status(200).json({
+            status: 'success',
+            data: task
+        })
     } catch (error) {
-        return res.status(400).json(error.message)
+        return res.status(400).json({
+            status: "fail",
+            message: error.message
+        })
     }
 }
 
 module.exports = {
     createTask,
-    updateTask,
     getAllTask,
     updateTaskById,
-    deleteTask,
     deleteTaskById,
     relationship,
     getTaskById
 }
+
+

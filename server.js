@@ -7,17 +7,17 @@ dotenv.config({
 
 const app = require('./app.js')
 
-db.authenticate()
+db.sync({})
     .then(() => console.log('sync succesfully'))
     .catch((e) => console.log('Error in syncing', e))
 
 //  
-// const taskModel = require('./model/taskModel.js')
-// const repeatedTasks = require('./model/repetedTaskModel.js')
-// taskModel
-// repeatedTasks
-// const userModel = require('./model/userModel.js')
-// userModel
+const taskModel = require('./model/taskModel.js')
+const repeatedTasks = require('./model/repetedTaskModel.js')
+taskModel
+repeatedTasks
+const userModel = require('./model/userModel.js')
+userModel
 
 
 
