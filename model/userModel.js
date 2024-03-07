@@ -12,13 +12,15 @@ const userModel = db.define('users', {
     },
     name: {
         type: Sequelize.STRING,
-        // allowNull: false,
-        // validate: {
-        //     notNull: {
-        //         args: true,
-        //         msg: "name must be required!"
-        //     }
-        // }
+        allowNull: false,
+        set(value = '') {
+
+            if (value.length === 0) {
+                throw new Error('name must be required')
+            }
+            this.setDataValue('name', value)
+        }
+
 
     },
     email: {

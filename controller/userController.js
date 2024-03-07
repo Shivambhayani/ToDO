@@ -18,12 +18,12 @@ const signUp = async (req, res) => {
         const data = await User.create({
             name, email, password,  // store token in databse
         })
-        if (!name) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'name required'
-            })
-        }
+        // if (name.length === 0) {
+        //     return res.status(400).json({
+        //         status: 'fail',
+        //         message: 'name required'
+        //     })
+        // }
         const token = generateToken(data.id);
 
         const userWithoutPassword = { ...data.toJSON(), password: undefined };
