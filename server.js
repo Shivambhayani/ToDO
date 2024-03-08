@@ -1,6 +1,6 @@
 const dotenv = require("dotenv");
 const db = require("./utils/database.js");
-const { createDailyTask } = require("./controller/repeatTaskController.js");
+const user = require("./model/userModel.js");
 
 dotenv.config({
     path: "./.env",
@@ -8,23 +8,30 @@ dotenv.config({
 
 const app = require("./app.js");
 
+const repeatedTasks = require("./model/repetedTaskModel.js");
+const taskModel = require("./model/taskModel.js");
+//  destroy repeted task user
+// repeatedTasks.destroy({
+//     where: {},
+//     truncate: true,
+// });
+
+// taskModel.destroy({
+//     where: {},
+//     truncate: true,
+// });
+
 db.authenticate()
-    .then(() => console.log("sync succesfully"))
-    .catch((e) => console.log("Error in syncing", e));
+    .then(() => console.log("sync succesfully 🎉😎"))
+    .catch((e) => console.log("Error in syncing 😌", e));
 
 //  models
-const taskModel = require("./model/taskModel.js");
-const repeatedTasks = require("./model/repetedTaskModel.js");
-taskModel;
-repeatedTasks;
-const userModel = require("./model/userModel.js");
-userModel;
+// const taskModel = require("./model/taskModel.js");
 
-// const cron = require('node-cron')
-
-// cron.schedule('* * * * * *', () => {
-//     createDailyTask()
-// });
+// taskModel;
+// repeatedTasks;
+// const userModel = require("./model/userModel.js");
+// userModel;
 
 const port = process.env.PORT || 3000;
 

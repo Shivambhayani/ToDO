@@ -11,7 +11,7 @@ const userModel = db.define("users", {
     },
     name: {
         type: Sequelize.STRING,
-        allowNull: false,
+
         set(value = "") {
             if (value.length === 0) {
                 throw new Error("name must be required");

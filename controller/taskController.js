@@ -24,7 +24,7 @@ const createTask = async (req, res) => {
     try {
         const { title, description, status } = req.body;
         const userId = req.user.id;
-        console.log(userId);
+        // console.log(userId);
         const data = await tasks.create({
             title,
             description,
@@ -94,7 +94,7 @@ const getTaskById = async (req, res) => {
 const getAllTask = async (req, res) => {
     try {
         const userId = req.user.id;
-        console.log(userId);
+        // console.log(userId);
         const data = await tasks.findAll({ where: { userId } });
         // console.log(data);
         // if (data.length === 0) {
