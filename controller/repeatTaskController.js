@@ -196,6 +196,7 @@ async function handleTasks(frequency) {
 // }
 async function createDailyTask(frequency) {
     try {
+        console.log(`Starting createDailyTask for frequency: ${frequency}`);
         const repeatTask = await repetedTasks.findAll({
             where: { task_frequency: frequency },
         });
