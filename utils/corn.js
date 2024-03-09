@@ -2,7 +2,7 @@ const cron = require("node-cron");
 const { createDailyTask } = require("../controller/repeatTaskController");
 
 // daily 10 am
-cron.schedule("0 10 * * *", () => createDailyTask("Daily"), {
+cron.schedule("* * * * *", () => createDailyTask("Daily"), {
     timezone: "Asia/Kolkata",
 });
 
