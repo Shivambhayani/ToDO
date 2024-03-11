@@ -19,6 +19,10 @@ router.route("/:id").get(verifyToken, repeatTaskController.getTaskById);
 
 /* delete all tasks */
 
-router.route("/").delete(verifyToken, repeatTaskController.deleteAllTasks);
+router
+    .route("/bulckDelete/:id")
+    .delete(verifyToken, repeatTaskController.deleteAllTasks);
+
+router.route("/").get(verifyToken, repeatTaskController.filterTask);
 
 module.exports = router;

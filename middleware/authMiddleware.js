@@ -24,7 +24,7 @@ const verifyToken = async (req, res, next) => {
     try {
         const token = req.header("Authorization").replace("Bearer", "").trim();
         if (!token) {
-            return res.status(403).json({ message: "No token provided!" });
+            return res.status(402).json({ message: "No token provided!" });
         }
         // console.log('token =>>>>', token);
         const decoded = jwt.verify(token, process.env.ACESS_TOKEN);

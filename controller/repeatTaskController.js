@@ -8,6 +8,7 @@ const findTaskByUserId = async (userId, id) => {
     return await repetedTasks.findOne({ where: { id, userId } });
 };
 
+/* create tasks */
 const createTask = async (req, res) => {
     try {
         const { title, description, task_frequency, status } = req.body;
@@ -21,8 +22,15 @@ const createTask = async (req, res) => {
             status,
             userId,
         });
-        // send data in normal task table
-        await taskModel.create({ title, description, status, userId });
+
+        /* send data in normal task table */
+        await taskModel.create({
+            title,
+            description,
+            status,
+            userId,
+            task_frequency,
+        });
         res.status(201).json({
             status: "success",
             data: data,
@@ -35,10 +43,47 @@ const createTask = async (req, res) => {
     }
 };
 
+/*  get Tasks */
+const getTaskById = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
+        const taskId = req.params.id;
+        const task = await findTaskByUserId(userId, taskId);
+
+        if (!task) {
+            return res.status(404).json({
+                status: "fail",
+                message: "Unauthorize",
+            });
+        }
+        res.status(200).json({
+            status: "success",
+            data: task,
+        });
+    } catch (error) {
+        return res.status(400).json({
+            status: "fail",
+            message: error.message,
+        });
+    }
+};
+
 const getAllTask = async (req, res) => {
     try {
         const userId = req.user.id;
+
+        //if userId -> null then 400, user is required
+        if (!userId || userId.length === 0) {
+            return res.status(401).json({
+                status: "fail",
+                message: "Unauthorize",
+            });
+        }
         const data = await repetedTasks.findAll({ where: { userId } });
+
+        // data => undefined/null/ {} or [] then data not found
+
         // if (data.length === 0) {
         //     return res.status(404).json({
         //         status: "fail",
@@ -50,39 +95,12 @@ const getAllTask = async (req, res) => {
         return res.status(400).json({
             status: "fail",
             message: error.message,
+            stack: error.stack,
         });
     }
 };
 
-const deleteTaskById = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        // const userId = await getLastUserIdFromDatabase()
-        const taskId = req.params.id;
-        const task = await findTaskByUserId(userId, taskId);
-
-        if (!task) {
-            return res.status(404).json({
-                status: "fail",
-                message: "Task not found",
-            });
-        }
-
-        await task.destroy();
-        await task.save();
-
-        res.status(200).json({
-            status: "success",
-            message: "Task deleted successfully",
-        });
-    } catch (error) {
-        return res.status(400).json({
-            status: "fail",
-            message: error.message,
-        });
-    }
-};
-
+/* Update Tasks*/
 const updateTaskById = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -126,6 +144,78 @@ const updateTaskById = async (req, res) => {
     }
 };
 
+/*DELETE TASKS*/
+const deleteTaskById = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        // const userId = await getLastUserIdFromDatabase()
+        const taskId = req.params.id;
+        const task = await findTaskByUserId(userId, taskId);
+
+        if (!task) {
+            return res.status(404).json({
+                status: "fail",
+                message: "Task not found",
+            });
+        }
+
+        await task.destroy();
+        await task.save();
+
+        res.status(200).json({
+            status: "success",
+            message: "Task deleted successfully",
+        });
+    } catch (error) {
+        return res.status(400).json({
+            status: "fail",
+            message: error.message,
+        });
+    }
+};
+
+const deleteAllTasks = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const taskId = req.params.id.split(",").map((id) => parseInt(id)); //If the string begins with any other character, the radix is 10 (decimal).
+
+        // const tasks = await repetedTasks.findAll({
+        //     where: {
+        //         userId: userId,
+        //         id: taskId,
+        //     },
+        // });
+        // for (const task of tasks) {
+        //     await task.destroy();
+        // }
+
+        // await tasks.save();
+
+        await repetedTasks.destroy({
+            where: {
+                userId: userId,
+                id: taskId,
+            },
+        });
+        if (tasks.length !== taskId.length) {
+            return res.status(401).json({
+                status: "fail",
+                message: "Unauthorized",
+            });
+        }
+        return res.status(200).json({
+            status: "success",
+            message: "All Task deleted successfully",
+        });
+    } catch (error) {
+        return res.status(400).json({
+            status: "fail",
+            message: error.message,
+        });
+    }
+};
+
+/* Relations */
 const relationship = async (req, res) => {
     try {
         const data = await repetedTasks.findAll({
@@ -149,31 +239,7 @@ const relationship = async (req, res) => {
     }
 };
 
-const getTaskById = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        // const userId = await getLastUserIdFromDatabase()
-        const taskId = req.params.id;
-        const task = await findTaskByUserId(userId, taskId);
-
-        if (!task) {
-            return res.status(404).json({
-                status: "fail",
-                message: "Task not found",
-            });
-        }
-        res.status(200).json({
-            status: "success",
-            data: task,
-        });
-    } catch (error) {
-        return res.status(400).json({
-            status: "fail",
-            message: error.message,
-        });
-    }
-};
-
+/* cron for Daily Tasks*/
 async function createDailyTask(frequency) {
     try {
         console.log(`Starting createDailyTask for frequency: ${frequency}`);
@@ -190,6 +256,7 @@ async function createDailyTask(frequency) {
             const task = await taskModel.create({
                 title: Task.title,
                 description: Task.description,
+                task_frequency: Task.task_frequency,
                 userId: Task.userId,
             });
 
@@ -202,27 +269,29 @@ async function createDailyTask(frequency) {
     }
 }
 
-/*  delete  */
-
-const deleteAllTasks = async (req, res) => {
+/*   filter tasks  */
+const filterTask = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const data = await repetedTasks.destroy({
-            where: {},
-            truncate: true,
-        });
+        const { status, task_frequency } = req.query;
+        const queryObj = {};
 
-        // await data.destroy();
-        // await data.save();
-
-        return res.status(200).json({
-            status: "success",
-            message: "All Task deleted successfully",
-            data: data,
+        if (status) {
+            queryObj.status = status;
+        }
+        if (task_frequency) {
+            queryObj.task_frequency = task_frequency;
+        }
+        const data = await repetedTasks.findAll({
+            where: {
+                userId: userId,
+                ...queryObj,
+            },
         });
+        res.status(200).json({ status: "success", data: data });
     } catch (error) {
-        return res.status(400).json({
+        return res.status(500).json({
             status: "fail",
             message: error.message,
         });
@@ -238,4 +307,5 @@ module.exports = {
     getTaskById,
     createDailyTask,
     deleteAllTasks,
+    filterTask,
 };

@@ -15,4 +15,11 @@ router.route("/:id").patch(verifyToken, taskController.updateTaskById);
 
 router.route("/:id").delete(verifyToken, taskController.deleteTaskById);
 
+router.route("/").get(verifyToken, taskController.filterTask);
+
+/*  Delete tasks */
+router
+    .route("/bulkDelete/:id")
+    .delete(verifyToken, taskController.deleteAllTasks);
+
 module.exports = router;

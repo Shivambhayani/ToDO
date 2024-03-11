@@ -20,6 +20,15 @@ const taskModel = db.define("tasks", {
         type: Sequelize.ENUM("TODO", "IN-PROGRESS", "DONE"),
         defaultValue: "TODO",
     },
+    task_frequency: {
+        type: Sequelize.ENUM(
+            "Daily",
+            "weekly",
+            "monthly",
+            "Quarterly",
+            "yearly"
+        ),
+    },
     userId: {
         type: Sequelize.BIGINT,
         allowNull: false,
