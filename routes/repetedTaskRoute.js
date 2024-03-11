@@ -17,4 +17,8 @@ router.route("/relation").get(repeatTaskController.relationship);
 
 router.route("/:id").get(verifyToken, repeatTaskController.getTaskById);
 
+/* delete all tasks */
+
+router.route("/").delete(verifyToken, repeatTaskController.deleteAllTasks);
+
 module.exports = router;

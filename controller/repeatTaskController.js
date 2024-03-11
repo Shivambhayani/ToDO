@@ -39,12 +39,12 @@ const getAllTask = async (req, res) => {
     try {
         const userId = req.user.id;
         const data = await repetedTasks.findAll({ where: { userId } });
-        if (data.length === 0) {
-            return res.status(404).json({
-                status: "fail",
-                message: "No tasks found. Create a new task",
-            });
-        }
+        // if (data.length === 0) {
+        //     return res.status(404).json({
+        //         status: "fail",
+        //         message: "No tasks found. Create a new task",
+        //     });
+        // }
         res.status(200).json({ status: "success", data: data });
     } catch (error) {
         return res.status(400).json({
@@ -174,26 +174,6 @@ const getTaskById = async (req, res) => {
     }
 };
 
-async function handleTasks(frequency) {
-    try {
-        // Logic to handle tasks based on frequency
-        const tasks = await repetedTasks.findAll({
-            where: { task_frequency: frequency },
-        });
-        console.log(`${frequency} tasks:`, tasks);
-    } catch (error) {
-        console.error(`Error handling ${frequency} tasks:`, error);
-    }
-}
-//  daily task
-// async function getAllUsers() {
-//     try {
-//         const users = await userModel.findAll();
-//         return users;
-//     } catch (error) {
-//         throw new Error(`Error fetching users: ${error.message}`);
-//     }
-// }
 async function createDailyTask(frequency) {
     try {
         console.log(`Starting createDailyTask for frequency: ${frequency}`);
@@ -205,7 +185,7 @@ async function createDailyTask(frequency) {
             throw new Error("No users found in the database.");
         }
 
-        // Create a new daily task for each user
+        // Create a new daily task for each tasks
         for (const Task of repeatTask) {
             const task = await taskModel.create({
                 title: Task.title,
@@ -222,6 +202,33 @@ async function createDailyTask(frequency) {
     }
 }
 
+/*  delete  */
+
+const deleteAllTasks = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const data = await repetedTasks.destroy({
+            where: {},
+            truncate: true,
+        });
+
+        // await data.destroy();
+        // await data.save();
+
+        return res.status(200).json({
+            status: "success",
+            message: "All Task deleted successfully",
+            data: data,
+        });
+    } catch (error) {
+        return res.status(400).json({
+            status: "fail",
+            message: error.message,
+        });
+    }
+};
+
 module.exports = {
     createTask,
     getAllTask,
@@ -230,4 +237,5 @@ module.exports = {
     relationship,
     getTaskById,
     createDailyTask,
+    deleteAllTasks,
 };
