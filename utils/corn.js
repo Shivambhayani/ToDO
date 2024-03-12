@@ -2,7 +2,7 @@ const cron = require("node-cron");
 const { createDailyTask } = require("../controller/repeatTaskController");
 const dotenv = require("dotenv");
 dotenv.config();
-console.log(process.env.WEBHOOK_URL);
+// console.log(process.env.WEBHOOK_URL);
 const webhookUrl = process.env.WEBHOOK_URL;
 
 // Schedule daily task at 10:00 AM every day
