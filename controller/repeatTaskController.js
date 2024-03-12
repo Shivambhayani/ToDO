@@ -4,6 +4,7 @@ const userModel = require("../model/userModel");
 const taskModel = require("../model/taskModel");
 const { Op } = require("sequelize");
 const { verifyToken } = require("../middleware/authMiddleware");
+const { IncomingWebhook } = require("@slack/webhook");
 
 const findTaskByUserId = async (userId, id) => {
     return await repetedTasks.findOne({ where: { id, userId } });
@@ -281,7 +282,7 @@ const relationship = async (req, res) => {
 };
 
 /* cron for Daily Tasks*/
-async function createDailyTask(frequency) {
+async function createDailyTask(frequency, webhookUrl) {
     try {
         console.log(`Starting createDailyTask for frequency: ${frequency}`);
         const repeatTask = await repetedTasks.findAll({
@@ -295,6 +296,8 @@ async function createDailyTask(frequency) {
         //  get today creatd task
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const tenAMToday = new Date(today);
+        tenAMToday.setHours(10, 0, 0, 0);
 
         // Create a new daily task for each tasks
         for (const Task of repeatTask) {
@@ -302,29 +305,52 @@ async function createDailyTask(frequency) {
             const existingTask = await taskModel.findOne({
                 where: {
                     userId: Task.userId,
-                    createdAt: { [Op.gte]: today }, // Find tasks created today or later
+                    createdAt: {
+                        [Op.gte]: today, // Find tasks created today or later
+                        [Op.lt]: tenAMToday, // Find tasks created before 10:00 AM today
+                    },
                 },
             });
 
             /*  if task not created today or not exists than creat e new task */
-
             if (!existingTask) {
+                let title = Task.title.replace(/<\/?p>/g, ""); // Remove <p> tags
+                let description = Task.description.replace(/<\/?p>/g, "");
                 const task = await taskModel.create({
-                    title: Task.title,
-                    description: Task.description,
+                    title: title,
+                    description: description,
                     task_frequency: Task.task_frequency,
                     userId: Task.userId,
                 });
 
-                console.log("Daily task created for users:", Task.id, task);
+                console.log(
+                    `${frequency} task created for task id:`,
+                    Task.id,
+                    task
+                );
+
+                // Send message to Slack channel
+                const webhook = new IncomingWebhook(webhookUrl);
+                await webhook.send({
+                    text: `${frequency}Task schedular:`,
+                    blocks: [
+                        {
+                            type: "section",
+                            text: {
+                                type: "mrkdwn",
+                                text: `${task.title}\n${task.description}`,
+                            },
+                        },
+                    ],
+                });
             } else {
-                console.log("Daily task already exists for user:", Task.userId);
+                console.log(`${frequency} task alredy created:`, Task.id);
             }
         }
 
-        console.log("Daily tasks created for all users.");
+        console.log(`${frequency} tasks created for all users.`);
     } catch (error) {
-        console.error("Error creating daily task:", error.message);
+        console.error(`Error creating ${frequency}task:`, error.message);
     }
 }
 

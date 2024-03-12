@@ -68,7 +68,12 @@ const login = async (req, res) => {
         }
         // Generate new token
         const token = generateToken(user.id);
-
+        if (!token || token.length === 0) {
+            return res.status(401).json({
+                status: "fail",
+                message: "Unauthorized!",
+            });
+        }
         // Store new token in the database
         // user.tokens = token;
         // await user.save();
@@ -82,7 +87,7 @@ const login = async (req, res) => {
         sendToken(userWithoutPassword, token, 200, res);
         // sendToken(user, token, 200, res)
     } catch (error) {
-        return res.status(500).json({
+        return res.status(401).json({
             status: "fail",
             message: error.message,
         });
