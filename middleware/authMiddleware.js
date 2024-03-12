@@ -22,9 +22,13 @@ const sendToken = (user, token, statusCode, res) => {
 
 const verifyToken = async (req, res, next) => {
     try {
-        const token = req.header("Authorization").replace("Bearer", "").trim();
-        if (!token) {
+        const authorizationHeader = req.header("Authorization");
+        if (!authorizationHeader) {
             return res.status(402).json({ message: "No token provided!" });
+        }
+        const token = authorizationHeader.replace("Bearer", "").trim();
+        if (!token) {
+            return res.status(402).json({ message: "Invalid token provided!" });
         }
         // console.log('token =>>>>', token);
         const decoded = jwt.verify(token, process.env.ACESS_TOKEN);

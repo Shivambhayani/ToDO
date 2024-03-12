@@ -2,6 +2,7 @@ const User = require("../model/userModel");
 const repetedTasks = require("../model/repetedTaskModel");
 const userModel = require("../model/userModel");
 const taskModel = require("../model/taskModel");
+const { Op } = require("sequelize");
 const { verifyToken } = require("../middleware/authMiddleware");
 
 const findTaskByUserId = async (userId, id) => {
@@ -177,7 +178,13 @@ const deleteTaskById = async (req, res) => {
 const deleteAllTasks = async (req, res) => {
     try {
         const userId = req.user.id;
-        const taskId = req.params.id.split(",").map((id) => parseInt(id)); //If the string begins with any other character, the radix is 10 (decimal).
+        const taskId = req.params.id.split(",").map((id) => parseInt(id));
+        if (!taskId || taskId.length === 0) {
+            return res.status(401).json({
+                status: "fail",
+                message: "Unauthorized",
+            });
+        }
 
         // const tasks = await repetedTasks.findAll({
         //     where: {
@@ -197,18 +204,13 @@ const deleteAllTasks = async (req, res) => {
                 id: taskId,
             },
         });
-        if (tasks.length !== taskId.length) {
-            return res.status(401).json({
-                status: "fail",
-                message: "Unauthorized",
-            });
-        }
+
         return res.status(200).json({
             status: "success",
             message: "All Task deleted successfully",
         });
     } catch (error) {
-        return res.status(400).json({
+        return res.status(404).json({
             status: "fail",
             message: error.message,
         });
@@ -251,16 +253,34 @@ async function createDailyTask(frequency) {
             throw new Error("No users found in the database.");
         }
 
+        //  get today creatd task
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         // Create a new daily task for each tasks
         for (const Task of repeatTask) {
-            const task = await taskModel.create({
-                title: Task.title,
-                description: Task.description,
-                task_frequency: Task.task_frequency,
-                userId: Task.userId,
+            // Check if a task has already been created for this user today
+            const existingTask = await taskModel.findOne({
+                where: {
+                    userId: Task.userId,
+                    createdAt: { [Op.gte]: today }, // Find tasks created today or later
+                },
             });
 
-            console.log("Daily task created for Daily Task:", Task.id, task);
+            /*  if task not created today or not exists than creat e new task */
+
+            if (!existingTask) {
+                const task = await taskModel.create({
+                    title: Task.title,
+                    description: Task.description,
+                    task_frequency: Task.task_frequency,
+                    userId: Task.userId,
+                });
+
+                console.log("Daily task created for users:", Task.id, task);
+            } else {
+                console.log("Daily task already exists for user:", Task.userId);
+            }
         }
 
         console.log("Daily tasks created for all users.");
