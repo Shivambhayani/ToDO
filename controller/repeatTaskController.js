@@ -70,36 +70,75 @@ const getTaskById = async (req, res) => {
     }
 };
 
-const getAllTask = async (req, res) => {
+/*   filter tasks  */
+const getAllAndFilterTask = async (req, res) => {
     try {
         const userId = req.user.id;
-
-        //if userId -> null then 400, user is required
         if (!userId || userId.length === 0) {
             return res.status(401).json({
                 status: "fail",
                 message: "Unauthorize",
             });
         }
-        const data = await repetedTasks.findAll({ where: { userId } });
 
-        // data => undefined/null/ {} or [] then data not found
+        const { status, task_frequency } = req.query;
+        const queryObj = {};
 
-        // if (data.length === 0) {
-        //     return res.status(404).json({
-        //         status: "fail",
-        //         message: "No tasks found. Create a new task",
-        //     });
-        // }
+        if (status) {
+            queryObj.status = status;
+        }
+        if (task_frequency) {
+            queryObj.task_frequency = task_frequency;
+        }
+        let data;
+        if (Object.keys(queryObj).length === 0) {
+            data = await repetedTasks.findAll({ where: { userId } });
+        } else {
+            data = await repetedTasks.findAll({
+                where: {
+                    userId: userId,
+                    ...queryObj,
+                },
+            });
+        }
         res.status(200).json({ status: "success", data: data });
     } catch (error) {
-        return res.status(400).json({
+        return res.status(500).json({
             status: "fail",
             message: error.message,
-            stack: error.stack,
         });
     }
 };
+// const getAllTask = async (req, res) => {
+//     try {
+//         const userId = req.user.id;
+
+//         //if userId -> null then 400, user is required
+//         if (!userId || userId.length === 0) {
+//             return res.status(401).json({
+//                 status: "fail",
+//                 message: "Unauthorize",
+//             });
+//         }
+//         const data = await repetedTasks.findAll({ where: { userId } });
+
+//         // data => undefined/null/ {} or [] then data not found
+
+//         // if (data.length === 0) {
+//         //     return res.status(404).json({
+//         //         status: "fail",
+//         //         message: "No tasks found. Create a new task",
+//         //     });
+//         // }
+//         res.status(200).json({ status: "success", data: data });
+//     } catch (error) {
+//         return res.status(400).json({
+//             status: "fail",
+//             message: error.message,
+//             stack: error.stack,
+//         });
+//     }
+// };
 
 /* Update Tasks*/
 const updateTaskById = async (req, res) => {
@@ -289,43 +328,13 @@ async function createDailyTask(frequency) {
     }
 }
 
-/*   filter tasks  */
-const filterTask = async (req, res) => {
-    try {
-        const userId = req.user.id;
-
-        const { status, task_frequency } = req.query;
-        const queryObj = {};
-
-        if (status) {
-            queryObj.status = status;
-        }
-        if (task_frequency) {
-            queryObj.task_frequency = task_frequency;
-        }
-        const data = await repetedTasks.findAll({
-            where: {
-                userId: userId,
-                ...queryObj,
-            },
-        });
-        res.status(200).json({ status: "success", data: data });
-    } catch (error) {
-        return res.status(500).json({
-            status: "fail",
-            message: error.message,
-        });
-    }
-};
-
 module.exports = {
     createTask,
-    getAllTask,
     updateTaskById,
     deleteTaskById,
     relationship,
     getTaskById,
     createDailyTask,
     deleteAllTasks,
-    filterTask,
+    getAllAndFilterTask,
 };

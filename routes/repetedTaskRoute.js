@@ -7,7 +7,7 @@ const { verifyToken } = require("../middleware/authMiddleware.js");
 //  routes
 router.route("/create").post(verifyToken, repeatTaskController.createTask);
 
-router.route("/getall").get(verifyToken, repeatTaskController.getAllTask);
+router.route("/").get(verifyToken, repeatTaskController.getAllAndFilterTask);
 
 router.route("/:id").patch(verifyToken, repeatTaskController.updateTaskById);
 
@@ -23,6 +23,6 @@ router
     .route("/bulckDelete/:id")
     .delete(verifyToken, repeatTaskController.deleteAllTasks);
 
-router.route("/").get(verifyToken, repeatTaskController.filterTask);
+// router.route("/").get(verifyToken, repeatTaskController.filterTask);
 
 module.exports = router;
