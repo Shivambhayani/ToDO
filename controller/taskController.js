@@ -23,13 +23,19 @@ const findTaskByUserId = async (userId, id) => {
 
 /*  create new task */
 const createTask = async (req, res) => {
+    function removeHTMLTags(html) {
+        return html.replace(/<[^>]*>/g, "");
+    }
     try {
-        const { title, description, status } = req.body;
+        const { title, description, status, task_frequency } = req.body;
         const userId = req.user.id;
         // console.log(userId);
+        let cleartitle = removeHTMLTags(title);
+        let cleardescription = removeHTMLTags(description);
         const data = await tasks.create({
-            title,
-            description,
+            title: cleartitle,
+            description: cleardescription,
+            task_frequency,
             status,
             userId,
         });

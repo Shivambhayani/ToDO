@@ -5,6 +5,12 @@ const taskModel = require("../model/taskModel");
 const { Op } = require("sequelize");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { IncomingWebhook } = require("@slack/webhook");
+const cheerio = require("cheerio");
+
+// htmal praser
+function removeHTMLTags(html) {
+    return html.replace(/<[^>]*>/g, "");
+}
 
 const findTaskByUserId = async (userId, id) => {
     return await repetedTasks.findOne({ where: { id, userId } });
@@ -15,11 +21,12 @@ const createTask = async (req, res) => {
     try {
         const { title, description, task_frequency, status } = req.body;
         const userId = req.user.id;
-        // const userId = await getLastUserIdFromDatabase()
+        let cleartitle = removeHTMLTags(title);
+        let cleardescription = removeHTMLTags(description);
 
         const data = await repetedTasks.create({
-            title,
-            description,
+            title: cleartitle,
+            description: cleardescription,
             task_frequency,
             status,
             userId,
@@ -27,8 +34,8 @@ const createTask = async (req, res) => {
 
         /* send data in normal task table */
         await taskModel.create({
-            title,
-            description,
+            title: cleardescription,
+            description: cleardescription,
             status,
             userId,
             task_frequency,
@@ -318,10 +325,14 @@ async function createDailyTask(frequency, webhookUrl) {
 
             /*  if task not created today or not exists than creat e new task */
             if (!existingTask) {
-                let title = Task.title.replace(/<\/?p>/g, "").trim(); // Remove <p> tags
-                let description = Task.description
-                    .replace(/<\/?p>/g, "")
-                    .trim();
+                // let title = Task.title.replace(/<\/?p>/g, "").trim(); // Remove <p> tags
+                // let description = Task.description
+                //     .replace(/<\/?p>/g, "")
+                //     .trim();
+
+                let title = removeHTMLTags(Task.title);
+                let description = removeHTMLTags(Task.description);
+
                 const task = await taskModel.create({
                     title: title,
                     description: description,
