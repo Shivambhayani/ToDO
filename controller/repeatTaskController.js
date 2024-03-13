@@ -296,8 +296,12 @@ async function createDailyTask(frequency, webhookUrl) {
         //  get today creatd task
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
         const tenAMToday = new Date(today);
         tenAMToday.setHours(10, 0, 0, 0);
+
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
         // Create a new daily task for each tasks
         for (const Task of repeatTask) {
@@ -314,8 +318,10 @@ async function createDailyTask(frequency, webhookUrl) {
 
             /*  if task not created today or not exists than creat e new task */
             if (!existingTask) {
-                let title = Task.title.replace(/<\/?p>/g, ""); // Remove <p> tags
-                let description = Task.description.replace(/<\/?p>/g, "");
+                let title = Task.title.replace(/<\/?p>/g, "").trim(); // Remove <p> tags
+                let description = Task.description
+                    .replace(/<\/?p>/g, "")
+                    .trim();
                 const task = await taskModel.create({
                     title: title,
                     description: description,
