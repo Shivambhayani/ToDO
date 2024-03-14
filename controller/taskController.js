@@ -27,8 +27,11 @@ const createTask = async (req, res) => {
     try {
         const { title, description, status, task_frequency } = req.body;
         const userId = req.user.id;
-        // Get current time formatted
-        const currentTime = moment().toISOString();
+        // Get current time formatted with moment.js
+        const currentTime = moment().format("LLLL");
+
+        // Convert the moment-formatted time to ISO 8601 format
+        const isoTime = moment(currentTime, "LLLL").toISOString();
         // console.log(userId);
 
         const data = await tasks.create({
@@ -37,8 +40,8 @@ const createTask = async (req, res) => {
             task_frequency,
             status,
             userId,
-            createdAt: currentTime,
-            updatedAt: currentTime,
+            createdAt: isoTime,
+            updatedAt: isoTime,
         });
 
         res.status(201).json({
