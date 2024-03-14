@@ -6,6 +6,7 @@ const { Op } = require("sequelize");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { IncomingWebhook } = require("@slack/webhook");
 const cheerio = require("cheerio");
+const moment = require("moment");
 
 // htmal praser
 function removeHTMLTags(html) {
@@ -184,7 +185,7 @@ const updateTaskById = async (req, res) => {
             task.status = status;
         }
         // Update updatedAt field with current time
-        task.updatedAt = moment().format("LLLL");
+        task.updatedAt = moment().format("lll");
         await task.save();
 
         res.status(200).json({

@@ -208,7 +208,7 @@ const updateTaskById = async (req, res) => {
             task.status = status;
         }
         // Update updatedAt field with current time
-        task.updatedAt = moment().format("LLLL");
+        task.updatedAt = moment().format("lll");
         await task.save();
 
         res.status(200).json({ status: "success", data: task });
