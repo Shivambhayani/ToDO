@@ -43,7 +43,9 @@ const repeatedTasks = db.define("repeat_Tasks", {
         allowNull: false,
         defaultValue: Sequelize.NOW,
         get() {
-            return moment(this.getDataValue("createdAt")).format("lll");
+            return moment(this.getDataValue("createdAt"))
+                .tz("Asia/Kolkata")
+                .format("lll");
         },
     },
     updatedAt: {
@@ -51,7 +53,9 @@ const repeatedTasks = db.define("repeat_Tasks", {
         allowNull: false,
         defaultValue: Sequelize.NOW,
         get() {
-            return moment(this.getDataValue("updatedAt")).format("lll");
+            return moment(this.getDataValue("updatedAt"))
+                .tz("Asia/Kolkata")
+                .format("lll");
         },
     },
 });
