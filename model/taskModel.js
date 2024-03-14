@@ -1,6 +1,7 @@
 const Sequelize = require("sequelize");
 const db = require("../utils/database");
 const User = require("./userModel");
+const moment = require("moment");
 
 const taskModel = db.define("tasks", {
     id: {
@@ -35,6 +36,22 @@ const taskModel = db.define("tasks", {
         references: {
             model: "users",
             key: "id",
+        },
+    },
+    createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
+        get() {
+            return moment(this.getDataValue("createdAt")).format("lll");
+        },
+    },
+    updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
+        get() {
+            return moment(this.getDataValue("updatedAt")).format("lll");
         },
     },
 });

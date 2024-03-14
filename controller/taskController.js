@@ -37,20 +37,18 @@ const createTask = async (req, res) => {
             task_frequency,
             status,
             userId,
-            createdAt: isoTime,
-            updatedAt: isoTime,
         });
 
         // Format the createdAt and updatedAt fields for display
-        const formattedData = {
-            ...data.toJSON(),
-            createdAt: moment(data.createdAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
-            updatedAt: moment(data.updatedAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
-        };
+        // const formattedData = {
+        //     ...data.toJSON(),
+        //     createdAt: moment(data.createdAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
+        //     updatedAt: moment(data.updatedAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
+        // };
 
         res.status(201).json({
             status: "success",
-            data: formattedData,
+            data: data,
         });
     } catch (error) {
         return res.status(403).json({
@@ -103,6 +101,7 @@ const getTaskById = async (req, res) => {
                 message: "Task not found",
             });
         }
+
         res.status(200).json({
             status: "success",
             data: task,
@@ -145,6 +144,16 @@ const getAllAndFilterTask = async (req, res) => {
                 },
             });
         }
+
+        // const formattedData = data.map((task) => ({
+        //     id: task.id,
+        //     title: task.title,
+        //     description: task.description,
+        //     task_frequency: task.task_frequency,
+        //     status: task.status,
+        //     createdAt: moment(task.createdAt, moment.ISO_8601).format("lll"),
+        //     updatedAt: moment(task.updatedAt, moment.ISO_8601).format("lll"),
+        // }));
         res.status(200).json({ status: "success", data: data });
     } catch (error) {
         return res.status(500).json({
@@ -208,7 +217,7 @@ const updateTaskById = async (req, res) => {
             task.status = status;
         }
         // Update updatedAt field with current time
-        task.updatedAt = moment().format("lll");
+        // task.updatedAt = moment().format("lll");
         await task.save();
 
         res.status(200).json({ status: "success", data: task });
