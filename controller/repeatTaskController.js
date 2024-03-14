@@ -19,7 +19,7 @@ const findTaskByUserId = async (userId, id) => {
 /* create tasks */
 const createTask = async (req, res) => {
     try {
-        const currentTime = moment().format("LLLL");
+        const isoTime = new Date().toISOString();
         const { title, description, task_frequency, status } = req.body;
         const userId = req.user.id;
 
@@ -29,8 +29,8 @@ const createTask = async (req, res) => {
             task_frequency,
             status,
             userId,
-            createdAt: currentTime,
-            updatedAt: currentTime,
+            createdAt: isoTime,
+            updatedAt: isoTime,
         });
 
         /* send data in normal task table */
@@ -40,12 +40,15 @@ const createTask = async (req, res) => {
             status,
             userId,
             task_frequency,
-            createdAt: currentTime,
-            updatedAt: currentTime,
         });
+        const formattedData = {
+            ...data.toJSON(),
+            createdAt: moment(data.createdAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
+            updatedAt: moment(data.updatedAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
+        };
         res.status(201).json({
             status: "success",
-            data: data,
+            data: formattedData,
         });
     } catch (error) {
         return res.status(403).json({
