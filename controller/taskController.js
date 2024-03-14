@@ -44,8 +44,8 @@ const createTask = async (req, res) => {
         // Format the createdAt and updatedAt fields for display
         const formattedData = {
             ...data.toJSON(),
-            createdAt: moment(data.createdAt).format("LLLL"),
-            updatedAt: moment(data.updatedAt).format("LLLL"),
+            createdAt: moment(data.createdAt).tz("Asia/Kolkata").format("LLLL"), // Adjusted for IST
+            updatedAt: moment(data.updatedAt).tz("Asia/Kolkata").format("LLLL"), // Adjusted for IST
         };
 
         res.status(201).json({
