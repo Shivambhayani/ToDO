@@ -19,26 +19,29 @@ const findTaskByUserId = async (userId, id) => {
 /* create tasks */
 const createTask = async (req, res) => {
     try {
+        const currentTime = moment().format("LLLL");
         const { title, description, task_frequency, status } = req.body;
         const userId = req.user.id;
-        let cleartitle = removeHTMLTags(title);
-        let cleardescription = removeHTMLTags(description);
 
         const data = await repetedTasks.create({
-            title: cleartitle,
-            description: cleardescription,
+            title,
+            description,
             task_frequency,
             status,
             userId,
+            createdAt: currentTime,
+            updatedAt: currentTime,
         });
 
         /* send data in normal task table */
         await taskModel.create({
-            title: cleartitle,
-            description: cleardescription,
+            title,
+            description,
             status,
             userId,
             task_frequency,
+            createdAt: currentTime,
+            updatedAt: currentTime,
         });
         res.status(201).json({
             status: "success",
@@ -177,7 +180,8 @@ const updateTaskById = async (req, res) => {
         if (status !== undefined) {
             task.status = status;
         }
-
+        // Update updatedAt field with current time
+        task.updatedAt = moment().format("LLLL");
         await task.save();
 
         res.status(200).json({
@@ -305,7 +309,7 @@ async function createDailyTask(frequency, webhookUrl) {
         today.setHours(0, 0, 0, 0);
 
         const tenAMToday = new Date(today);
-        tenAMToday.setHours(10, 0, 0, 0);
+        tenAMToday.setHours(9, 0, 0, 0);
 
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
