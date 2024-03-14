@@ -20,7 +20,6 @@ const findTaskByUserId = async (userId, id) => {
 /* create tasks */
 const createTask = async (req, res) => {
     try {
-        const isoTime = new Date().toISOString();
         const { title, description, task_frequency, status } = req.body;
         const userId = req.user.id;
 
@@ -30,8 +29,6 @@ const createTask = async (req, res) => {
             task_frequency,
             status,
             userId,
-            createdAt: isoTime,
-            updatedAt: isoTime,
         });
 
         /* send data in normal task table */
@@ -42,14 +39,10 @@ const createTask = async (req, res) => {
             userId,
             task_frequency,
         });
-        const formattedData = {
-            ...data.toJSON(),
-            createdAt: moment(data.createdAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
-            updatedAt: moment(data.updatedAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
-        };
+
         res.status(201).json({
             status: "success",
-            data: formattedData,
+            data: data,
         });
     } catch (error) {
         return res.status(403).json({
@@ -364,7 +357,7 @@ async function createDailyTask(frequency, webhookUrl) {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: `User: ${user.name}\nTitle: ${createdTask.title}\nDescription: ${createdTask.description}`,
+                                text: `*User*: ${user.name}\n*Title*: ${createdTask.title}\n*Description*: ${createdTask.description}`,
                             },
                         },
                     ],

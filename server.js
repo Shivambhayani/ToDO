@@ -11,15 +11,15 @@ const app = require("./app.js");
 const repeatedTasks = require("./model/repetedTaskModel.js");
 const taskModel = require("./model/taskModel.js");
 //  destroy repeted task user
-// repeatedTasks.destroy({
-//     where: {},
-//     truncate: true,
-// });
+repeatedTasks.destroy({
+    where: {},
+    truncate: true,
+});
 
-// taskModel.destroy({
-//     where: {},
-//     truncate: true,
-// });
+taskModel.destroy({
+    where: {},
+    truncate: true,
+});
 
 db.authenticate()
     .then(() => console.log("sync succesfully 🎉😎"))

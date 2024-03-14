@@ -28,7 +28,6 @@ const createTask = async (req, res) => {
         const { title, description, status, task_frequency } = req.body;
         const userId = req.user.id;
 
-        const isoTime = new Date().toISOString();
         // console.log(userId);
 
         const data = await tasks.create({
@@ -38,13 +37,6 @@ const createTask = async (req, res) => {
             status,
             userId,
         });
-
-        // Format the createdAt and updatedAt fields for display
-        // const formattedData = {
-        //     ...data.toJSON(),
-        //     createdAt: moment(data.createdAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
-        //     updatedAt: moment(data.updatedAt).tz("Asia/Kolkata").format("lll"), // Adjusted for IST
-        // };
 
         res.status(201).json({
             status: "success",
