@@ -34,7 +34,7 @@ const createTask = async (req, res) => {
 
         /* send data in normal task table */
         await taskModel.create({
-            title: cleardescription,
+            title: cleartitle,
             description: cleardescription,
             status,
             userId,
@@ -325,6 +325,7 @@ async function createDailyTask(frequency, webhookUrl) {
 
             /*  if task not created today or not exists than creat e new task */
             if (!existingTask) {
+                const user = await userModel.findByPk(Task.userId);
                 // let title = Task.title.replace(/<\/?p>/g, "").trim(); // Remove <p> tags
                 // let description = Task.description
                 //     .replace(/<\/?p>/g, "")
@@ -333,7 +334,7 @@ async function createDailyTask(frequency, webhookUrl) {
                 let title = removeHTMLTags(Task.title);
                 let description = removeHTMLTags(Task.description);
 
-                const task = await taskModel.create({
+                const createdTask = await taskModel.create({
                     title: title,
                     description: description,
                     task_frequency: Task.task_frequency,
@@ -343,23 +344,39 @@ async function createDailyTask(frequency, webhookUrl) {
                 console.log(
                     `${frequency} task created for task id:`,
                     Task.id,
-                    task
+                    createdTask
                 );
 
                 // Send message to Slack channel
                 const webhook = new IncomingWebhook(webhookUrl);
-                await webhook.send({
+                const input = await webhook.send({
                     text: `${frequency}Task schedular:`,
                     blocks: [
                         {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: `${task.title}\n${task.description}`,
+                                text: `User: ${user.name}\nTitle: ${createdTask.title}\nDescription: ${createdTask.description}`,
                             },
                         },
                     ],
                 });
+                const inputString = input.toString();
+
+                // Remove any trailing comma and split the input string into individual tasks
+                const tasks = inputString.replace(/,$/, "").split(" ").slice(1);
+
+                const formattedTasks = [];
+                for (const task of tasks) {
+                    // Remove the date part and capitalize the first letter of each word
+                    const formattedTask = task
+                        .split(/(?=[A-Z])/)
+                        .join(" ")
+                        .trim();
+                    formattedTasks.push(formattedTask);
+                }
+                const output = formattedTasks.join("\n");
+                console.log(output);
             } else {
                 console.log(`${frequency} task alredy created:`, Task.id);
             }
