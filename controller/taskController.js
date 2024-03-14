@@ -28,7 +28,7 @@ const createTask = async (req, res) => {
         const { title, description, status, task_frequency } = req.body;
         const userId = req.user.id;
         // Get current time formatted
-        const currentTime = moment().format("LLLL");
+        const currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
         // console.log(userId);
 
         const data = await tasks.create({
