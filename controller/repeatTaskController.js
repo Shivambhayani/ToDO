@@ -3,15 +3,13 @@ const repetedTasks = require("../model/repetedTaskModel");
 const userModel = require("../model/userModel");
 const taskModel = require("../model/taskModel");
 const { Op } = require("sequelize");
-const { verifyToken } = require("../middleware/authMiddleware");
 const { IncomingWebhook } = require("@slack/webhook");
 const cheerio = require("cheerio");
-const moment = require("moment");
 
-// htmal praser
-function removeHTMLTags(html) {
-    return html.replace(/<[^>]*>/g, "");
-}
+// // htmal praser
+// function removeHTMLTags(html) {
+//     return html.replace(/<[^>]*>/g, "");
+// }
 
 const findTaskByUserId = async (userId, id) => {
     return await repetedTasks.findOne({ where: { id, userId } });
@@ -56,7 +54,6 @@ const createTask = async (req, res) => {
 const getTaskById = async (req, res) => {
     try {
         const userId = req.user.id;
-        // const userId = await getLastUserIdFromDatabase()
         const taskId = req.params.id;
         const task = await findTaskByUserId(userId, taskId);
 
@@ -152,7 +149,7 @@ const getAllAndFilterTask = async (req, res) => {
 const updateTaskById = async (req, res) => {
     try {
         const userId = req.user.id;
-        // const userId = await getLastUserIdFromDatabase()
+
         const taskId = req.params.id;
         let task = await findTaskByUserId(userId, taskId);
 
@@ -178,7 +175,7 @@ const updateTaskById = async (req, res) => {
             task.status = status;
         }
         // Update updatedAt field with current time
-        task.updatedAt = moment().format("lll");
+        // task.updatedAt = moment().format("lll");
         await task.save();
 
         res.status(200).json({
@@ -197,7 +194,7 @@ const updateTaskById = async (req, res) => {
 const deleteTaskById = async (req, res) => {
     try {
         const userId = req.user.id;
-        // const userId = await getLastUserIdFromDatabase()
+
         const taskId = req.params.id;
         const task = await findTaskByUserId(userId, taskId);
 
@@ -233,18 +230,6 @@ const deleteAllTasks = async (req, res) => {
                 message: "Unauthorized",
             });
         }
-
-        // const tasks = await repetedTasks.findAll({
-        //     where: {
-        //         userId: userId,
-        //         id: taskId,
-        //     },
-        // });
-        // for (const task of tasks) {
-        //     await task.destroy();
-        // }
-
-        // await tasks.save();
 
         await repetedTasks.destroy({
             where: {
@@ -332,8 +317,32 @@ async function createDailyTask(frequency, webhookUrl) {
                 //     .replace(/<\/?p>/g, "")
                 //     .trim();
 
-                let title = removeHTMLTags(Task.title);
-                let description = removeHTMLTags(Task.description);
+                let title = Task.title;
+                let description = Task.description;
+                const $ = cheerio.load(description);
+                const formattedDescription = $.text().trim();
+                // Parse the description if it contains HTML tags
+                // if (/<[a-z][\s\S]*>/i.test(description)) {
+                //     // Load HTML content into Cheerio
+                //     const $ = cheerio.load(description);
+                //     // Initialize an empty array to store formatted lines
+                //     const formattedLines = [];
+                //     // Iterate over each HTML element
+                //     $("body")
+                //         .children()
+                //         .each((index, element) => {
+                //             // Get the text content of the element and trim any leading or trailing whitespace
+                //             const text = $(element).text().trim();
+                //             // Add the formatted text to the array
+                //             formattedLines.push(text);
+                //             // Add a newline character after each text content except for the last one
+                //             if (index < $("body").children().length - 1) {
+                //                 formattedLines.push("\n");
+                //             }
+                //         });
+                //     // Join the formatted lines into a single string
+                //     description = formattedLines.join("");
+                // }
 
                 const createdTask = await taskModel.create({
                     title: title,
@@ -350,34 +359,18 @@ async function createDailyTask(frequency, webhookUrl) {
 
                 // Send message to Slack channel
                 const webhook = new IncomingWebhook(webhookUrl);
-                const input = await webhook.send({
+                await webhook.send({
                     text: `${frequency}Task schedular:`,
                     blocks: [
                         {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: `*User*: ${user.name}\n*Title*: ${createdTask.title}\n*Description*: ${createdTask.description}`,
+                                text: `*User*: ${user.name}\n*Title*: ${createdTask.title}\n*Description*: ${formattedDescription}`,
                             },
                         },
                     ],
                 });
-                const inputString = input.toString();
-
-                // Remove any trailing comma and split the input string into individual tasks
-                const tasks = inputString.replace(/,$/, "").split(" ").slice(1);
-
-                const formattedTasks = [];
-                for (const task of tasks) {
-                    // Remove the date part and capitalize the first letter of each word
-                    const formattedTask = task
-                        .split(/(?=[A-Z])/)
-                        .join(" ")
-                        .trim();
-                    formattedTasks.push(formattedTask);
-                }
-                const output = formattedTasks.join("\n");
-                console.log(output);
             } else {
                 console.log(`${frequency} task alredy created:`, Task.id);
             }

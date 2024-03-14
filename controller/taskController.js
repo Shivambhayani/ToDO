@@ -3,7 +3,8 @@ const tasks = require("../model/taskModel");
 const User = require("../model/userModel");
 const Sequelize = require("sequelize");
 const { sequalize, QueryTypes } = Sequelize;
-const moment = require("moment");
+const sanitizeHtml = require("sanitize-html");
+
 //  new user cerated
 const getLastUserIdFromDatabase = async () => {
     try {
@@ -29,10 +30,14 @@ const createTask = async (req, res) => {
         const userId = req.user.id;
 
         // console.log(userId);
+        const sanitizedDescription = sanitizeHtml(description, {
+            allowedTags: [], // Allow no tags, effectively removing all HTML
+            allowedAttributes: {}, // Allow no attributes
+        });
 
         const data = await tasks.create({
             title,
-            description,
+            description: sanitizedDescription,
             task_frequency,
             status,
             userId,
