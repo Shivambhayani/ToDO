@@ -14,7 +14,13 @@ const repeatedTasks = db.define("repeat_Tasks", {
         allowNull: false,
     },
     description: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(1023),
+        validate: {
+            len: {
+                args: [0, 1023], // Allow up to 1000 characters
+                msg: "Description cannot exceed 1000 characters",
+            },
+        },
     },
     task_frequency: {
         type: Sequelize.ENUM(

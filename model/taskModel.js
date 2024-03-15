@@ -15,7 +15,13 @@ const taskModel = db.define("tasks", {
         allowNull: false,
     },
     description: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(1023),
+        validate: {
+            len: {
+                args: [0, 1023], // Allow up to 1000 characters
+                msg: "Description cannot exceed 1000 characters",
+            },
+        },
     },
     status: {
         type: Sequelize.ENUM("TODO", "IN-PROGRESS", "DONE"),

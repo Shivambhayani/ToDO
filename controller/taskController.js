@@ -3,8 +3,7 @@ const tasks = require("../model/taskModel");
 const User = require("../model/userModel");
 const Sequelize = require("sequelize");
 const { sequalize, QueryTypes } = Sequelize;
-const sanitizeHtml = require("sanitize-html");
-
+const moment = require("moment");
 //  new user cerated
 const getLastUserIdFromDatabase = async () => {
     try {
@@ -30,14 +29,10 @@ const createTask = async (req, res) => {
         const userId = req.user.id;
 
         // console.log(userId);
-        const sanitizedDescription = sanitizeHtml(description, {
-            allowedTags: [], // Allow no tags, effectively removing all HTML
-            allowedAttributes: {}, // Allow no attributes
-        });
 
         const data = await tasks.create({
             title,
-            description: sanitizedDescription,
+            description,
             task_frequency,
             status,
             userId,
@@ -48,10 +43,20 @@ const createTask = async (req, res) => {
             data: data,
         });
     } catch (error) {
-        return res.status(403).json({
-            status: "fail",
-            message: error.message,
-        });
+        // Check if the error is a Sequelize validation error
+        if (error.name === "SequelizeValidationError") {
+            // Extract the first validation error message from the array
+            const errorMessage = error.errors[0].message;
+            return res.status(400).json({
+                status: "fail",
+                message: errorMessage, // Send the validation error message
+            });
+        } else {
+            return res.status(500).json({
+                status: "fail",
+                message: "An error occurred while creating the task.",
+            });
+        }
     }
 };
 

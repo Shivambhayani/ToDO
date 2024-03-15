@@ -5,6 +5,8 @@ const taskModel = require("../model/taskModel");
 const { Op } = require("sequelize");
 const { IncomingWebhook } = require("@slack/webhook");
 const cheerio = require("cheerio");
+// const { toMarkdown } = require("slackify-html");
+const TurndownService = require("turndown");
 
 // // htmal praser
 // function removeHTMLTags(html) {
@@ -43,8 +45,23 @@ const createTask = async (req, res) => {
             data: data,
         });
     } catch (error) {
-        return res.status(403).json({
+        if (error.name === "SequelizeValidationError") {
+            // Check if the error is for the description field
+            const descriptionError = error.errors.find(
+                (err) => err.path === "description"
+            );
+            // If there's a validation error for the description field, return its custom error message
+            if (descriptionError) {
+                return res.status(400).json({
+                    status: "fail",
+                    message: descriptionError.message,
+                });
+            }
+        }
+
+        return res.status(500).json({
             status: "fail",
+            message: "An error occurred while creating the task.",
             error: error.message,
         });
     }
@@ -275,6 +292,33 @@ const relationship = async (req, res) => {
 };
 
 /* cron for Daily Tasks*/
+// Create a new instance of TurndownService
+const turndownService = new TurndownService();
+// Add custom rules to handle specific HTML elements
+turndownService.addRule("bold", {
+    filter: ["b", "strong"],
+    replacement: (content) => `*${content.trim()}*`,
+});
+
+turndownService.addRule("italic", {
+    filter: ["i", "em"],
+    replacement: (content) => `_${content.trim()}_`,
+});
+
+turndownService.addRule("underline", {
+    filter: ["u"],
+    replacement: (content) => `<u>${content.trim()}</u>`,
+});
+
+turndownService.addRule("orderList", {
+    filter: ["ol"],
+    replacement: (content) => content.trim(),
+});
+
+turndownService.addRule("unorderedList", {
+    filter: ["ul"],
+    replacement: (content) => content.trim(),
+});
 async function createDailyTask(frequency, webhookUrl) {
     try {
         console.log(`Starting createDailyTask for frequency: ${frequency}`);
@@ -291,7 +335,7 @@ async function createDailyTask(frequency, webhookUrl) {
         today.setHours(0, 0, 0, 0);
 
         const tenAMToday = new Date(today);
-        tenAMToday.setHours(9, 0, 0, 0);
+        tenAMToday.setHours(10, 0, 0, 0);
 
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -319,30 +363,6 @@ async function createDailyTask(frequency, webhookUrl) {
 
                 let title = Task.title;
                 let description = Task.description;
-                const $ = cheerio.load(description);
-                const formattedDescription = $.text().trim();
-                // Parse the description if it contains HTML tags
-                // if (/<[a-z][\s\S]*>/i.test(description)) {
-                //     // Load HTML content into Cheerio
-                //     const $ = cheerio.load(description);
-                //     // Initialize an empty array to store formatted lines
-                //     const formattedLines = [];
-                //     // Iterate over each HTML element
-                //     $("body")
-                //         .children()
-                //         .each((index, element) => {
-                //             // Get the text content of the element and trim any leading or trailing whitespace
-                //             const text = $(element).text().trim();
-                //             // Add the formatted text to the array
-                //             formattedLines.push(text);
-                //             // Add a newline character after each text content except for the last one
-                //             if (index < $("body").children().length - 1) {
-                //                 formattedLines.push("\n");
-                //             }
-                //         });
-                //     // Join the formatted lines into a single string
-                //     description = formattedLines.join("");
-                // }
 
                 const createdTask = await taskModel.create({
                     title: title,
@@ -356,7 +376,9 @@ async function createDailyTask(frequency, webhookUrl) {
                     Task.id,
                     createdTask
                 );
-
+                // Convert description to Slack-compatible format
+                // const descriptionMarkdown =
+                //     turndownService.turndown(description);
                 // Send message to Slack channel
                 const webhook = new IncomingWebhook(webhookUrl);
                 await webhook.send({
@@ -366,7 +388,7 @@ async function createDailyTask(frequency, webhookUrl) {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: `*User*: ${user.name}\n*Title*: ${createdTask.title}\n*Description*: ${formattedDescription}`,
+                                text: `*User*: ${user.name}\n*Title*: ${createdTask.title}\n*Description*: ${descriptionMarkdown}`,
                             },
                         },
                     ],
