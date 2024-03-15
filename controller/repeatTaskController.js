@@ -173,7 +173,7 @@ const updateTaskById = async (req, res) => {
         if (!task) {
             return res.status(404).json({
                 status: "fail",
-                message: "Task not found for authorized user",
+                message: "Task not found ",
             });
         }
 
@@ -193,8 +193,21 @@ const updateTaskById = async (req, res) => {
         }
         // Update updatedAt field with current time
         // task.updatedAt = moment().format("lll");
-        await task.save();
 
+        await taskModel.update(
+            {
+                title: task.title,
+                description: task.description,
+                task_frequency: task.task_frequency,
+                status: task.status,
+            },
+            {
+                where: {
+                    id: taskId,
+                },
+            }
+        );
+        await task.save();
         res.status(200).json({
             status: "success",
             data: task,
@@ -307,7 +320,7 @@ turndownService.addRule("italic", {
 
 turndownService.addRule("underline", {
     filter: ["u"],
-    replacement: (content) => `<u>${content.trim()}</u>`,
+    replacement: (content) => `_${content.trim()}_`,
 });
 
 turndownService.addRule("orderList", {
@@ -377,8 +390,8 @@ async function createDailyTask(frequency, webhookUrl) {
                     createdTask
                 );
                 // Convert description to Slack-compatible format
-                // const descriptionMarkdown =
-                //     turndownService.turndown(description);
+                const descriptionMarkdown =
+                    turndownService.turndown(description);
                 // Send message to Slack channel
                 const webhook = new IncomingWebhook(webhookUrl);
                 await webhook.send({
@@ -388,7 +401,7 @@ async function createDailyTask(frequency, webhookUrl) {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: `*User*: ${user.name}\n*Title*: ${createdTask.title}\n*Description*: ${descriptionMarkdown}`,
+                                text: `*${user.name}*\n*${Task.updatedAt}*\n\n*Title*: ${createdTask.title}\n*Description*:\n${descriptionMarkdown}`,
                             },
                         },
                     ],
