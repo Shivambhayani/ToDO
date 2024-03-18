@@ -168,9 +168,9 @@ const updateTaskById = async (req, res) => {
         const userId = req.user.id;
 
         const taskId = req.params.id;
-        let task = await findTaskByUserId(userId, taskId);
+        let repeatedTask = await findTaskByUserId(userId, taskId);
 
-        if (!task) {
+        if (!repeatedTask) {
             return res.status(404).json({
                 status: "fail",
                 message: "Task not found ",
@@ -180,37 +180,47 @@ const updateTaskById = async (req, res) => {
         const { title, description, task_frequency, status } = req.body;
 
         if (title !== undefined) {
-            task.title = title;
+            repeatedTask.title = title;
         }
         if (description !== undefined) {
-            task.description = description;
+            repeatedTask.description = description;
         }
         if (task_frequency !== undefined) {
-            task.task_frequency = task_frequency;
+            repeatedTask.task_frequency = task_frequency;
         }
         if (status !== undefined) {
-            task.status = status;
+            repeatedTask.status = status;
         }
-        // Update updatedAt field with current time
-        // task.updatedAt = moment().format("lll");
 
-        await taskModel.update(
-            {
-                title: task.title,
-                description: task.description,
-                task_frequency: task.task_frequency,
-                status: task.status,
+        // Save the updated repeatedTask in the repeated tasks table
+        await repeatedTask.save();
+
+        const normalTask = await taskModel.findOne({
+            where: {
+                userId: userId,
+                title: repeatedTask.title,
             },
-            {
-                where: {
-                    id: taskId,
-                },
+        });
+        if (normalTask) {
+            // if (title !== undefined) {
+            //     normalTask.title = title;
+            // }
+            if (description !== undefined) {
+                normalTask.description = description;
             }
-        );
-        await task.save();
+            if (task_frequency !== undefined) {
+                normalTask.task_frequency = task_frequency;
+            }
+            if (status !== undefined) {
+                normalTask.status = status;
+            }
+
+            await normalTask.save();
+        }
+
         res.status(200).json({
             status: "success",
-            data: task,
+            data: repeatedTask,
         });
     } catch (error) {
         return res.status(500).json({
@@ -335,14 +345,6 @@ turndownService.addRule("unorderedList", {
 async function createDailyTask(frequency, webhookUrl) {
     try {
         console.log(`Starting createDailyTask for frequency: ${frequency}`);
-        const repeatTask = await repetedTasks.findAll({
-            where: { task_frequency: frequency },
-        });
-
-        if (!repeatTask || repeatTask.length === 0) {
-            throw new Error("No users found in the database.");
-        }
-
         //  get today creatd task
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -353,6 +355,16 @@ async function createDailyTask(frequency, webhookUrl) {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
+        const repeatTask = await repetedTasks.findAll({
+            where: {
+                task_frequency: frequency,
+            },
+        });
+
+        if (!repeatTask || repeatTask.length === 0) {
+            throw new Error("No users found in the database.");
+        }
+
         // Create a new daily task for each tasks
         for (const Task of repeatTask) {
             // Check if a task has already been created for this user today
@@ -361,7 +373,7 @@ async function createDailyTask(frequency, webhookUrl) {
                     userId: Task.userId,
                     createdAt: {
                         [Op.gte]: today, // Find tasks created today or later
-                        [Op.lt]: tenAMToday, // Find tasks created before 10:00 AM today
+                        [Op.lt]: tenAMToday, //  before 10:00 AM today
                     },
                 },
             });
