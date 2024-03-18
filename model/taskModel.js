@@ -72,7 +72,7 @@ const taskModel = db.define("tasks", {
         get() {
             return moment(this.getDataValue("dueDate"))
                 .tz("Asia/Kolkata")
-                .format("lll");
+                .format("DD/MM/YYYY");
         },
     },
 });
