@@ -200,7 +200,7 @@ const updateTaskById = async (req, res) => {
                 message: "Token not found",
             });
         }
-        // const userId = await getLastUserIdFromDatabase()
+
         const taskId = req.params.id;
         let task = await findTaskByUserId(userId, taskId);
 
@@ -225,12 +225,7 @@ const updateTaskById = async (req, res) => {
         if (dueDate !== undefined) {
             task.dueDate = moment(dueDate, "DD/MM/YYYY").toDate();
         }
-        // if (dueDate) {
-        //     task.dueDate = moment(dueDate, "DD/MM/YYYY").toDate();
-        //     await task.save();
-        // }
-        // Update updatedAt field with current time
-        // task.updatedAt = moment().format("lll");
+
         await task.save();
         const formattedDueDate = moment(task.dueDate).format("DD/MM/YYYY");
 
