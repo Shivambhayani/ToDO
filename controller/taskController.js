@@ -25,22 +25,26 @@ const findTaskByUserId = async (userId, id) => {
 /*  create new task */
 const createTask = async (req, res) => {
     try {
-        const { title, description, status, task_frequency } = req.body;
+        const { title, description, status, task_frequency, dueDate } =
+            req.body;
         const userId = req.user.id;
 
-        // console.log(userId);
-
+        const parsedDueDate = moment.utc(dueDate, "DD/MM/YYYY").toDate();
+        const formattedDueDate = moment(parsedDueDate)
+            .tz("Asia/Kolkata")
+            .format("DD/MM/YYYY");
         const data = await tasks.create({
             title,
             description,
             task_frequency,
             status,
             userId,
+            dueDate: parsedDueDate,
         });
 
         res.status(201).json({
             status: "success",
-            data: data,
+            data: { ...data.toJSON(), dueDate: formattedDueDate },
         });
     } catch (error) {
         // Check if the error is a Sequelize validation error
@@ -146,17 +150,17 @@ const getAllAndFilterTask = async (req, res) => {
                 },
             });
         }
+        const formattedData = data.map((task) => {
+            return {
+                ...task.toJSON(),
+                // Format the dueDate to "DD/MM/YYYY"
+                dueDate: task.dueDate
+                    ? moment(task.dueDate).format("DD/MM/YYYY")
+                    : null,
+            };
+        });
 
-        // const formattedData = data.map((task) => ({
-        //     id: task.id,
-        //     title: task.title,
-        //     description: task.description,
-        //     task_frequency: task.task_frequency,
-        //     status: task.status,
-        //     createdAt: moment(task.createdAt, moment.ISO_8601).format("lll"),
-        //     updatedAt: moment(task.updatedAt, moment.ISO_8601).format("lll"),
-        // }));
-        res.status(200).json({ status: "success", data: data });
+        res.status(200).json({ status: "success", data: formattedData });
     } catch (error) {
         return res.status(500).json({
             status: "fail",
@@ -207,7 +211,7 @@ const updateTaskById = async (req, res) => {
             });
         }
 
-        const { title, description, status } = req.body;
+        const { title, description, status, dueDate } = req.body;
 
         if (title !== undefined) {
             task.title = title;
@@ -218,11 +222,22 @@ const updateTaskById = async (req, res) => {
         if (status !== undefined) {
             task.status = status;
         }
+        if (dueDate !== undefined) {
+            task.dueDate = moment(dueDate, "DD/MM/YYYY").toDate();
+        }
+        // if (dueDate) {
+        //     task.dueDate = moment(dueDate, "DD/MM/YYYY").toDate();
+        //     await task.save();
+        // }
         // Update updatedAt field with current time
         // task.updatedAt = moment().format("lll");
         await task.save();
+        const formattedDueDate = moment(task.dueDate).format("DD/MM/YYYY");
 
-        res.status(200).json({ status: "success", data: task });
+        res.status(200).json({
+            status: "success",
+            data: { ...task.toJSON(), dueDate: formattedDueDate },
+        });
     } catch (error) {
         return res.status(500).json({
             status: "fail",

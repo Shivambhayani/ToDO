@@ -68,12 +68,12 @@ const repeatedTasks = db.define("repeat_Tasks", {
     dueDate: {
         type: Sequelize.DATE,
         allowNull: true,
-        defaultValue: Sequelize.NOW,
-        get() {
-            return moment(this.getDataValue("dueDate"))
-                .tz("Asia/Kolkata")
-                .format("DD/MM/YYYY");
-        },
+        // defaultValue: Sequelize.NOW,
+        // get() {
+        //     return moment(this.getDataValue("dueDate"))
+        //         .tz("Asia/Kolkata")
+        //         .format("DD/MM/YYYY");
+        // },
     },
 });
 User.hasMany(repeatedTasks, { foreignKey: "userId" });

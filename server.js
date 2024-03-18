@@ -21,7 +21,7 @@ const taskModel = require("./model/taskModel.js");
 //     truncate: true,
 // });
 
-db.authenticate()
+db.sync({ alter: false })
     .then(() => console.log("sync succesfully 🎉😎"))
     .catch((e) => console.log("Error in syncing 😌", e));
 

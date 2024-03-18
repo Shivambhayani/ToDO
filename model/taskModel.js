@@ -68,12 +68,13 @@ const taskModel = db.define("tasks", {
     dueDate: {
         type: Sequelize.DATE,
         allowNull: true,
-        defaultValue: Sequelize.NOW,
-        get() {
-            return moment(this.getDataValue("dueDate"))
-                .tz("Asia/Kolkata")
-                .format("DD/MM/YYYY");
-        },
+        //     defaultValue: Sequelize.NOW,
+        //     get() {
+        //         return moment(this.getDataValue("dueDate"))
+        //             .tz("Asia/Kolkata")
+        //             .format("DD/MM/YYYY");
+        //     },
+        // },
     },
 });
 

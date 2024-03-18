@@ -5,6 +5,7 @@ const taskModel = require("../model/taskModel");
 const { Op } = require("sequelize");
 const { IncomingWebhook } = require("@slack/webhook");
 const cheerio = require("cheerio");
+const moment = require("moment");
 // const { toMarkdown } = require("slackify-html");
 const TurndownService = require("turndown");
 
@@ -20,15 +21,20 @@ const findTaskByUserId = async (userId, id) => {
 /* create tasks */
 const createTask = async (req, res) => {
     try {
-        const { title, description, task_frequency, status } = req.body;
+        const { title, description, task_frequency, status, dueDate } =
+            req.body;
         const userId = req.user.id;
-
+        const parsedDueDate = moment.utc(dueDate, "DD/MM/YYYY").toDate();
+        const formattedDueDate = moment(parsedDueDate)
+            .tz("Asia/Kolkata")
+            .format("DD/MM/YYYY");
         const data = await repetedTasks.create({
             title,
             description,
             task_frequency,
             status,
             userId,
+            dueDate: parsedDueDate,
         });
 
         /* send data in normal task table */
@@ -38,11 +44,12 @@ const createTask = async (req, res) => {
             status,
             userId,
             task_frequency,
+            dueDate: parsedDueDate,
         });
 
         res.status(201).json({
             status: "success",
-            data: data,
+            data: { ...data.toJSON(), dueDate: formattedDueDate },
         });
     } catch (error) {
         if (error.name === "SequelizeValidationError") {
@@ -123,7 +130,16 @@ const getAllAndFilterTask = async (req, res) => {
                 },
             });
         }
-        res.status(200).json({ status: "success", data: data });
+        const formattedData = data.map((task) => {
+            return {
+                ...task.toJSON(),
+                // Format the dueDate to "DD/MM/YYYY"
+                dueDate: task.dueDate
+                    ? moment(task.dueDate).format("DD/MM/YYYY")
+                    : null,
+            };
+        });
+        res.status(200).json({ status: "success", data: formattedData });
     } catch (error) {
         return res.status(500).json({
             status: "fail",
