@@ -31,6 +31,7 @@ const taskModel = db.define("tasks", {
         type: Sequelize.ENUM(
             "Daily",
             "weekly",
+            "weekDays",
             "monthly",
             "Quarterly",
             "yearly"
@@ -60,6 +61,16 @@ const taskModel = db.define("tasks", {
         defaultValue: Sequelize.NOW,
         get() {
             return moment(this.getDataValue("updatedAt"))
+                .tz("Asia/Kolkata")
+                .format("lll");
+        },
+    },
+    dueDate: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: Sequelize.NOW,
+        get() {
+            return moment(this.getDataValue("dueDate"))
                 .tz("Asia/Kolkata")
                 .format("lll");
         },
