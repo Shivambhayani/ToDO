@@ -1,6 +1,8 @@
 const User = require("../model/userModel");
 const bcrypt = require("bcryptjs");
 const { generateToken, sendToken } = require("../middleware/authMiddleware");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const signUp = async (req, res) => {
     try {
@@ -124,4 +126,57 @@ const deletedUser = async (req, res) => {
     }
 };
 
-module.exports = { signUp, login, deletedUser };
+//  google authentication
+passport.use(
+    new GoogleStrategy(
+        {
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: process.env.GOOGLE_CALLBACK_URL,
+            passReqToCallback: true,
+        },
+        async (accessToken, refreshToken, profile, done) => {
+            try {
+                // Check if user exists in the database
+                let user = await User.findOne({
+                    where: { googleId: profile.id },
+                });
+                if (!user) {
+                    // User not found, create a new user in the database
+                    user = await User.create({
+                        name: profile.displayName,
+                        email: profile.emails[0].value,
+                        googleId: profile.id,
+                    });
+                }
+
+                done(null, user);
+            } catch (error) {
+                done(error);
+            }
+        }
+    )
+);
+
+// Google Authentication Routes
+const googleAuth = passport.authenticate("google", {
+    scope: ["profile", "email"],
+});
+
+const googleCallback = passport.authenticate("google", {
+    failureRedirect: "/login",
+});
+
+const loggedIn = (req, res) => {
+    const token = generateToken(req.user.id);
+    sendToken(req.user, token, 200, res);
+};
+
+module.exports = {
+    signUp,
+    login,
+    deletedUser,
+    googleAuth,
+    googleCallback,
+    loggedIn,
+};
