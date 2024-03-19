@@ -163,9 +163,9 @@ const googleAuth = passport.authenticate("google", {
     scope: ["profile", "email"],
 });
 
-const googleCallback = passport.authenticate("google", {
-    failureRedirect: "/login",
-});
+const googleCallback = (req, res) => {
+    userController.loggedIn(req, res);
+};
 
 const loggedIn = (req, res) => {
     const token = generateToken(req.user.id);
