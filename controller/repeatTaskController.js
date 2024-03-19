@@ -24,17 +24,31 @@ const createTask = async (req, res) => {
         const { title, description, task_frequency, status, dueDate } =
             req.body;
         const userId = req.user.id;
-        const parsedDueDate = moment.utc(dueDate, "DD/MM/YYYY").toDate();
-        const formattedDueDate = moment(parsedDueDate)
-            .tz("Asia/Kolkata")
-            .format("DD/MM/YYYY");
+
+        let parsedDueDate = null;
+        let formattedDueDate = null;
+
+        if (dueDate) {
+            parsedDueDate = moment.utc(dueDate, "DD/MM/YYYY", true);
+            if (!parsedDueDate.isValid()) {
+                return res.status(400).json({
+                    status: "fail",
+                    message:
+                        "Invalid dueDate format. Please provide date in DD/MM/YYYY format.",
+                });
+            }
+            formattedDueDate = parsedDueDate
+                .clone()
+                .tz("Asia/Kolkata")
+                .format("DD/MM/YYYY");
+        }
         const data = await repetedTasks.create({
             title,
             description,
             task_frequency,
             status,
             userId,
-            dueDate: parsedDueDate,
+            dueDate: parsedDueDate ? parsedDueDate.toDate() : null,
         });
 
         /* send data in normal task table */
@@ -44,7 +58,7 @@ const createTask = async (req, res) => {
             status,
             userId,
             task_frequency,
-            dueDate: parsedDueDate,
+            dueDate: parsedDueDate ? parsedDueDate.toDate() : null,
         });
 
         res.status(201).json({
