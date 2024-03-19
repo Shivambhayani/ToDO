@@ -58,7 +58,8 @@ const createTask = async (req, res) => {
         } else {
             return res.status(500).json({
                 status: "fail",
-                message: "An error occurred while creating the task.",
+                messages: "An error occurred while creating the task.",
+                error: error.message,
             });
         }
     }

@@ -68,7 +68,7 @@ const createTask = async (req, res) => {
 
         return res.status(500).json({
             status: "fail",
-            message: "An error occurred while creating the task.",
+            messages: "An error occurred while creating the task.",
             error: error.message,
         });
     }
@@ -193,7 +193,8 @@ const updateTaskById = async (req, res) => {
             });
         }
 
-        const { title, description, task_frequency, status } = req.body;
+        const { title, description, task_frequency, status, dueDate } =
+            req.body;
 
         if (title !== undefined) {
             repeatedTask.title = title;
@@ -206,6 +207,9 @@ const updateTaskById = async (req, res) => {
         }
         if (status !== undefined) {
             repeatedTask.status = status;
+        }
+        if (dueDate !== undefined) {
+            repeatedTask.dueDate = moment(dueDate, "DD/MM/YYYY").toDate();
         }
 
         // Save the updated repeatedTask in the repeated tasks table
@@ -230,13 +234,18 @@ const updateTaskById = async (req, res) => {
             if (status !== undefined) {
                 normalTask.status = status;
             }
-
+            if (dueDate !== undefined) {
+                normalTask.dueDate = moment(dueDate, "DD/MM/YYYY").toDate();
+            }
             await normalTask.save();
         }
+        const formattedDueDate = moment(repeatedTask.dueDate).format(
+            "DD/MM/YYYY"
+        );
 
         res.status(200).json({
             status: "success",
-            data: repeatedTask,
+            data: { ...repeatedTask.toJSON(), dueDate: formattedDueDate },
         });
     } catch (error) {
         return res.status(500).json({

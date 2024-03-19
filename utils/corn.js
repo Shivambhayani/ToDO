@@ -27,6 +27,18 @@ cron.schedule(
     }
 );
 
+// weekDays
+
+cron.schedule(
+    "0 10 * * 1-5",
+    async () => {
+        await createDailyTask("weekDays", webhookUrl);
+    },
+    {
+        timezone: "Asia/Kolkata",
+    }
+);
+
 // Schedule monthly task at 10:00 AM on the 1st day of each month
 cron.schedule(
     "0 10 * 1-12 1",
