@@ -39,15 +39,13 @@ const verifyToken = async (req, res, next) => {
         req.user = user;
         next();
     } catch (err) {
-        if (err.name === "TokenExpiredError") {
-            return res
-                .status(401)
-                .json({ message: "Token expired. Please log in again." });
+        if (err.name === "JsonWebTokenError") {
+            return res.status(401).json({ message: "Invalid token" });
+        } else if (err.name === "TokenExpiredError") {
+            return res.status(401).json({ message: "Token expired" });
         }
-        console.log("Error verifying token: ", err);
-        return res.status(401).json({ message: "Unauthorized!" });
-
-        // next(err)
+        console.error("Error verifying token:", err);
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 
