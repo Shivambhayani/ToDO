@@ -49,28 +49,32 @@ const signUp = async (req, res) => {
 const signInWithGoogle = async (idToken) => {
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const { email, name } = decodedToken;
-        return { email, name };
+        console.log("Decoded ID token:", decodedToken);
+        // const { email, name } = decodedToken;
+        const { uid, email } = decodedToken.uid;
+        // Verify that the audience claim matches the Firebase project ID
+        if (decodedToken.aud !== "smart-todo-ffb67") {
+            throw new Error("Incorrect audience claim in ID token");
+        }
+        return { uid, email, decodedToken };
+        // return { email, name };
     } catch (error) {
+        console.error("Error signing in with Google:", error);
         throw new Error("Failed to sign in with Google");
     }
 };
 
 const login = async (req, res) => {
     try {
-        const { name, email, password, googleIdToken } = req.body;
+        const { googleIdToken } = req.body;
 
         if (googleIdToken) {
             // Login with Google using Firebase
-            const { email, name } = await signInWithGoogle(googleIdToken);
+            const { email } = await signInWithGoogle(googleIdToken);
             let user = await User.findOne({ where: { email } });
 
             if (!user) {
-                user = await User.create({ name, email });
-                // return res.status(400).json({
-                //     status: "fail",
-                //     message: "User not found. Please sign up with Google.",
-                // });
+                user = await User.create({ email });
             }
 
             // Generate authentication token for the user
@@ -82,7 +86,6 @@ const login = async (req, res) => {
                     user: {
                         id: user.id,
                         email,
-                        name,
                     },
                     token,
                 },
