@@ -66,7 +66,7 @@ const signInWithGoogle = async (idToken) => {
 
 const login = async (req, res) => {
     try {
-        const { googleIdToken } = req.body;
+        const { googleIdToken, email, password } = req.body;
 
         if (googleIdToken) {
             // Login with Google using Firebase
@@ -92,10 +92,10 @@ const login = async (req, res) => {
             //         },
             //     },
             // });
-            sendToken(user, token, 200, rea);
+            sendToken(user, token, 200, res);
         } else if (email && password) {
             // manuall login
-            const { email, password } = req.body;
+            // const { email, password } = req.body;
             if (!email || !password) {
                 return res.status(400).json({
                     status: "fail",
