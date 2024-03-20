@@ -6,3 +6,4 @@ passport-setup.js
 
 serviceAccountKey.json
 test.env
+./utils/firebase.js

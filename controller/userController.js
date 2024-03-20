@@ -66,10 +66,11 @@ const login = async (req, res) => {
             let user = await User.findOne({ where: { email } });
 
             if (!user) {
-                return res.status(400).json({
-                    status: "fail",
-                    message: "User not found. Please sign up with Google.",
-                });
+                user = await User.create({ name, email });
+                // return res.status(400).json({
+                //     status: "fail",
+                //     message: "User not found. Please sign up with Google.",
+                // });
             }
 
             // Generate authentication token for the user
@@ -87,6 +88,7 @@ const login = async (req, res) => {
                 },
             });
         } else {
+            // manuall login
             if (!email || !password) {
                 return res.status(400).json({
                     status: "fail",
