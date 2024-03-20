@@ -49,14 +49,14 @@ const signUp = async (req, res) => {
 const signInWithGoogle = async (idToken) => {
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        console.log("Decoded ID token:", decodedToken);
+        // console.log("Decoded ID token:", decodedToken);
         // const { email, name } = decodedToken;
-        const { uid, email } = decodedToken.uid;
+        const { uid, name, email } = decodedToken;
         // Verify that the audience claim matches the Firebase project ID
         if (decodedToken.aud !== "smart-todo-ffb67") {
             throw new Error("Incorrect audience claim in ID token");
         }
-        return { uid, email, decodedToken };
+        return { uid, name, email, decodedToken };
         // return { email, name };
     } catch (error) {
         console.error("Error signing in with Google:", error);
@@ -70,7 +70,7 @@ const login = async (req, res) => {
 
         if (googleIdToken) {
             // Login with Google using Firebase
-            const { email } = await signInWithGoogle(googleIdToken);
+            const { name, email } = await signInWithGoogle(googleIdToken);
             let user = await User.findOne({ where: { email } });
 
             if (!user) {
@@ -82,12 +82,13 @@ const login = async (req, res) => {
 
             return res.status(200).json({
                 status: "success",
+                tokens: { token },
                 data: {
                     user: {
                         id: user.id,
+                        name,
                         email,
                     },
-                    token,
                 },
             });
         } else {
@@ -133,7 +134,7 @@ const login = async (req, res) => {
             // sendToken(user, token, 200, res)
         }
     } catch (error) {
-        return res.status(401).json({
+        return res.status(400).json({
             status: "fail",
             message: error.message,
         });
