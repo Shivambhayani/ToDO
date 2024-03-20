@@ -81,17 +81,18 @@ const login = async (req, res) => {
             // Generate authentication token for the user
             const token = generateToken(user.id);
 
-            return res.status(200).json({
-                status: "success",
-                tokens: { token },
-                data: {
-                    user: {
-                        id: user.id,
-                        name,
-                        email,
-                    },
-                },
-            });
+            // return res.status(200).json({
+            //     status: "success",
+            //     tokens: { token },
+            //     data: {
+            //         user: {
+            //             id: user.id,
+            //             name,
+            //             email,
+            //         },
+            //     },
+            // });
+            sendToken(user, token, 200, rea);
         } else {
             // manuall login
             const { email, password } = req.body;
