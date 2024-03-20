@@ -83,17 +83,6 @@ const login = async (req, res) => {
             // Generate authentication token for the user
             const token = generateToken(user.id);
 
-            // return res.status(200).json({
-            //     status: "success",
-            //     tokens: { token },
-            //     data: {
-            //         user: {
-            //             id: user.id,
-            //             name,
-            //             email,
-            //         },
-            //     },
-            // });
             const userWithoutPassword = {
                 ...user.toJSON(),
                 password: undefined,
@@ -143,12 +132,6 @@ const login = async (req, res) => {
             };
             sendToken(userWithoutPassword, token, 200, res);
             // sendToken(user, token, 200, res)
-        } else {
-            // If neither Google ID token nor email/password is provided
-            return res.status(400).json({
-                status: "fail",
-                message: "Google ID token or email/password required",
-            });
         }
     } catch (error) {
         return res.status(400).json({
