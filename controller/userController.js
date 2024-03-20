@@ -1,8 +1,7 @@
 const User = require("../model/userModel");
 const bcrypt = require("bcryptjs");
 const { generateToken, sendToken } = require("../middleware/authMiddleware");
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const admin = require("../utils/firebase");
 
 const signUp = async (req, res) => {
     try {
@@ -18,7 +17,7 @@ const signUp = async (req, res) => {
         const data = await User.create({
             name,
             email,
-            password, // store token in databse
+            password,
         });
         // if (name.length === 0) {
         //     return res.status(400).json({
@@ -46,48 +45,88 @@ const signUp = async (req, res) => {
     }
 };
 
+// Function to sign in with Google using Firebase
+const signInWithGoogle = async (idToken) => {
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const { email, name } = decodedToken;
+        return { email, name };
+    } catch (error) {
+        throw new Error("Failed to sign in with Google");
+    }
+};
+
 const login = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({
-                status: "fail",
-                message: "email or password required",
-            });
-        }
+        const { name, email, password, googleIdToken } = req.body;
 
-        const user = await User.findOne({ where: { email } });
-        if (!user || user.length === 0) {
-            return res.status(400).json({
-                status: "fail",
-                message: "user not found!",
-            });
-        }
+        if (googleIdToken) {
+            // Login with Google using Firebase
+            const { email, name } = await signInWithGoogle(googleIdToken);
+            let user = await User.findOne({ where: { email } });
 
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.status(400).json({ message: "Wrong password" });
-        }
-        // Generate new token
-        const token = generateToken(user.id);
-        if (!token || token.length === 0) {
-            return res.status(401).json({
-                status: "fail",
-                message: "Unauthorized!",
-            });
-        }
-        // Store new token in the database
-        // user.tokens = token;
-        // await user.save();
+            if (!user) {
+                return res.status(400).json({
+                    status: "fail",
+                    message: "User not found. Please sign up with Google.",
+                });
+            }
 
-        const userWithoutPassword = {
-            ...user.toJSON(),
-            password: undefined,
-            updatedAt: undefined,
-            createdAt: undefined,
-        };
-        sendToken(userWithoutPassword, token, 200, res);
-        // sendToken(user, token, 200, res)
+            // Generate authentication token for the user
+            const token = generateToken(user.id);
+
+            return res.status(200).json({
+                status: "success",
+                data: {
+                    user: {
+                        id: user.id,
+                        email,
+                        name,
+                    },
+                    token,
+                },
+            });
+        } else {
+            if (!email || !password) {
+                return res.status(400).json({
+                    status: "fail",
+                    message: "email or password required",
+                });
+            }
+
+            const user = await User.findOne({ where: { email } });
+            if (!user || user.length === 0) {
+                return res.status(400).json({
+                    status: "fail",
+                    message: "user not found!",
+                });
+            }
+
+            const validPassword = await bcrypt.compare(password, user.password);
+            if (!validPassword) {
+                return res.status(400).json({ message: "Wrong password" });
+            }
+            // Generate new token
+            const token = generateToken(user.id);
+            if (!token || token.length === 0) {
+                return res.status(401).json({
+                    status: "fail",
+                    message: "Unauthorized!",
+                });
+            }
+            // Store new token in the database
+            // user.tokens = token;
+            // await user.save();
+
+            const userWithoutPassword = {
+                ...user.toJSON(),
+                password: undefined,
+                updatedAt: undefined,
+                createdAt: undefined,
+            };
+            sendToken(userWithoutPassword, token, 200, res);
+            // sendToken(user, token, 200, res)
+        }
     } catch (error) {
         return res.status(401).json({
             status: "fail",
@@ -126,57 +165,8 @@ const deletedUser = async (req, res) => {
     }
 };
 
-//  google authentication
-passport.use(
-    new GoogleStrategy(
-        {
-            clientID: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: process.env.GOOGLE_CALLBACK_URL,
-            passReqToCallback: true,
-        },
-        async (accessToken, refreshToken, profile, done) => {
-            try {
-                // Check if user exists in the database
-                let user = await User.findOne({
-                    where: { googleId: profile.id },
-                });
-                if (!user) {
-                    // User not found, create a new user in the database
-                    user = await User.create({
-                        name: profile.displayName,
-                        email: profile.emails[0].value,
-                        googleId: profile.id,
-                    });
-                }
-
-                done(null, user);
-            } catch (error) {
-                done(error);
-            }
-        }
-    )
-);
-
-// Google Authentication Routes
-const googleAuth = passport.authenticate("google", {
-    scope: ["profile", "email"],
-});
-
-const googleCallback = (req, res) => {
-    userController.loggedIn(req, res);
-};
-
-const loggedIn = (req, res) => {
-    const token = generateToken(req.user.id);
-    sendToken(req.user, token, 200, res);
-};
-
 module.exports = {
     signUp,
     login,
     deletedUser,
-    googleAuth,
-    googleCallback,
-    loggedIn,
 };
