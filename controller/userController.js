@@ -72,6 +72,7 @@ const login = async (req, res) => {
             // Login with Google using Firebase
             const { name, email } = await signInWithGoogle(googleIdToken);
             let user = await User.findOne({ where: { email } });
+            console.log("email:", email);
 
             if (!user) {
                 user = await User.create({ email });
@@ -93,6 +94,7 @@ const login = async (req, res) => {
             });
         } else {
             // manuall login
+            const { email, password } = req.body;
             if (!email || !password) {
                 return res.status(400).json({
                     status: "fail",
