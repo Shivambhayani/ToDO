@@ -49,15 +49,13 @@ const signUp = async (req, res) => {
 const signInWithGoogle = async (idToken) => {
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        // console.log("Decoded ID token:", decodedToken);
-        // const { email, name } = decodedToken;
+
         const { uid, name, email } = decodedToken;
         // Verify that the audience claim matches the Firebase project ID
         if (decodedToken.aud !== "smart-todo-ffb67") {
             throw new Error("Incorrect audience claim in ID token");
         }
         return { uid, name, email, decodedToken };
-        // return { email, name };
     } catch (error) {
         console.error("Error signing in with Google:", error);
         throw new Error("Failed to sign in with Google");
@@ -70,7 +68,7 @@ const login = async (req, res) => {
 
         if (googleIdToken) {
             // Login with Google using Firebase
-            const { email } = await signInWithGoogle(googleIdToken);
+            const { name, email } = await signInWithGoogle(googleIdToken);
             let user = await User.findOne({ where: { email } });
             console.log("email:", email);
 
@@ -92,7 +90,13 @@ const login = async (req, res) => {
             //         },
             //     },
             // });
-            sendToken(user, token, 200, res);
+            const userWithoutPassword = {
+                ...user.toJSON(),
+                password: undefined,
+                updatedAt: undefined,
+                createdAt: undefined,
+            };
+            sendToken(userWithoutPassword, token, 200, res);
         } else if (email && password) {
             // manuall login
             // const { email, password } = req.body;
