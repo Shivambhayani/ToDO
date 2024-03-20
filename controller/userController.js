@@ -75,7 +75,7 @@ const login = async (req, res) => {
             console.log("email:", email);
 
             if (!user) {
-                user = await User.create({ email });
+                user = await User.create({ email, password: "google_login" });
             }
 
             // Generate authentication token for the user
