@@ -70,7 +70,7 @@ const login = async (req, res) => {
 
         if (googleIdToken) {
             // Login with Google using Firebase
-            const { name, email } = await signInWithGoogle(googleIdToken);
+            const { email } = await signInWithGoogle(googleIdToken);
             let user = await User.findOne({ where: { email } });
             console.log("email:", email);
 
@@ -93,7 +93,7 @@ const login = async (req, res) => {
             //     },
             // });
             sendToken(user, token, 200, rea);
-        } else {
+        } else if (email && password) {
             // manuall login
             const { email, password } = req.body;
             if (!email || !password) {
@@ -135,6 +135,12 @@ const login = async (req, res) => {
             };
             sendToken(userWithoutPassword, token, 200, res);
             // sendToken(user, token, 200, res)
+        } else {
+            // If neither Google ID token nor email/password is provided
+            return res.status(400).json({
+                status: "fail",
+                message: "Google ID token or email/password required",
+            });
         }
     } catch (error) {
         return res.status(400).json({
