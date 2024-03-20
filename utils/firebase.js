@@ -1,6 +1,5 @@
 require("dotenv").config();
 const admin = require("firebase-admin");
-
 const serviceAccounts = {
     type: process.env.FIREBASE_ACCOUNT_TYPE,
     project_id: process.env.FIREBASE_PROJECT_ID,
@@ -16,7 +15,9 @@ const serviceAccounts = {
     universe_domain: process.env.REBASE_UNIVERSE_DOMAIN,
 };
 
+// Convert the JavaScript object to JSON
 const serviceAccountJSON = JSON.stringify(serviceAccounts);
+// Now parse the JSON string
 const serviceAccount = JSON.parse(serviceAccountJSON);
 
 admin.initializeApp({
