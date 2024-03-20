@@ -44,7 +44,7 @@ const verifyToken = async (req, res, next) => {
                 .status(401)
                 .json({ message: "Token expired. Please log in again." });
         }
-        console.log(err);
+        console.log("Error verifying token: ", err);
         return res.status(401).json({ message: "Unauthorized!" });
 
         // next(err)
