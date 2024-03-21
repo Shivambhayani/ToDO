@@ -224,6 +224,7 @@ const updateTaskById = async (req, res) => {
             task_frequency,
             status,
             selectedDays,
+            duration,
             dueDate,
         } = req.body;
 
@@ -238,6 +239,9 @@ const updateTaskById = async (req, res) => {
         }
         if (status !== undefined) {
             repeatedTask.status = status;
+        }
+        if (duration !== undefined) {
+            repeatedTask.duration = duration;
         }
         if (selectedDays !== undefined) {
             repeatedTask.selectedDays = selectedDays;
@@ -267,6 +271,12 @@ const updateTaskById = async (req, res) => {
             }
             if (status !== undefined) {
                 normalTask.status = status;
+            }
+            if (duration !== undefined) {
+                normalTask.duration = duration;
+            }
+            if (selectedDays !== undefined) {
+                normalTask.selectedDays = selectedDays;
             }
             if (dueDate !== undefined) {
                 normalTask.dueDate = moment(dueDate, "DD/MM/YYYY").toDate();
