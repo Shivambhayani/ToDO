@@ -22,6 +22,7 @@ const createTask = async (req, res) => {
             status,
             dueDate,
             selectedDays,
+            duration,
         } = req.body;
         const userId = req.user.id;
 
@@ -49,6 +50,7 @@ const createTask = async (req, res) => {
             status,
             userId,
             selectedDays,
+            duration,
             dueDate: parsedDueDate ? parsedDueDate.toDate() : null,
         });
 
@@ -60,6 +62,7 @@ const createTask = async (req, res) => {
             userId,
             task_frequency,
             selectedDays,
+            duration,
             dueDate: parsedDueDate ? parsedDueDate.toDate() : null,
         });
 
