@@ -64,6 +64,7 @@ const signInWithGoogle = async (idToken) => {
 
 const login = async (req, res) => {
     try {
+        // console.log("Login invoked");
         const { googleIdToken, email, password } = req.body;
 
         if (googleIdToken) {
@@ -89,7 +90,14 @@ const login = async (req, res) => {
                 updatedAt: undefined,
                 createdAt: undefined,
             };
-            sendToken(userWithoutPassword, token, 200, res);
+
+            return res.status(200).json({
+                status: "success",
+                tokens: { token },
+                data: {
+                    user: userWithoutPassword,
+                },
+            });
         } else if (email && password) {
             // manuall login
             // const { email, password } = req.body;
@@ -120,9 +128,6 @@ const login = async (req, res) => {
                     message: "Unauthorized!",
                 });
             }
-            // Store new token in the database
-            // user.tokens = token;
-            // await user.save();
 
             const userWithoutPassword = {
                 ...user.toJSON(),

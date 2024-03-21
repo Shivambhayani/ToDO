@@ -1,5 +1,8 @@
 const cron = require("node-cron");
-const { createDailyTask } = require("../controller/repeatTaskController");
+const {
+    fetchSelectedDays,
+    createDailyTask,
+} = require("../controller/repeatTaskController");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -27,17 +30,17 @@ cron.schedule(
     }
 );
 
-// weekDays
+const scheduleCronJob = (cronExpression, taskFunction) => {
+    try {
+        cron.schedule(cronExpression, taskFunction, {
+            timezone: "Asia/Kolkata",
+        });
 
-cron.schedule(
-    "0 10 * * 1-5",
-    async () => {
-        await createDailyTask("weekDays", webhookUrl);
-    },
-    {
-        timezone: "Asia/Kolkata",
+        console.log("Cron job scheduled with expression:", cronExpression);
+    } catch (error) {
+        console.error("Error scheduling cron job:", error.message);
     }
-);
+};
 
 // Schedule monthly task at 10:00 AM on the 1st day of each month
 cron.schedule(
@@ -76,3 +79,29 @@ cron.schedule(
 // cron.schedule("* * * * *", createDailyTask, {
 //     timezone: "Asia/Kolkata",
 // });
+
+fetchSelectedDays()
+    .then((selectedDays) => {
+        if (selectedDays.length === 0) {
+            console.log(
+                "No selected days found in the database. Skipping cron job scheduling."
+            );
+            return;
+        }
+
+        // console.log("Selected days fetched from the database:", selectedDays);
+        // Schedule cron job based on fetched selected days
+        const cronExpression = `0 10 * * ${selectedDays.join(",")}`;
+        cron.schedule(
+            cronExpression,
+            async () => {
+                await createDailyTask("weekDays", webhookUrl, selectedDays);
+            },
+            {
+                timezone: "Asia/Kolkata",
+            }
+        );
+    })
+    .catch((error) => {
+        console.error("Error:", error);
+    });

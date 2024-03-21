@@ -34,6 +34,10 @@ const repeatedTasks = db.define("repeat_Tasks", {
         ),
         defaultValue: "Daily",
     },
+    selectedDays: {
+        type: Sequelize.ARRAY(Sequelize.STRING),
+        allowNull: true,
+    },
     status: {
         type: Sequelize.ENUM("TODO", "IN-PROGRESS", "DONE"),
         defaultValue: "TODO",

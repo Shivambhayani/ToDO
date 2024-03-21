@@ -38,6 +38,10 @@ const taskModel = db.define("tasks", {
             "custom"
         ),
     },
+    selectedDays: {
+        type: Sequelize.ARRAY(Sequelize.STRING),
+        allowNull: true,
+    },
     userId: {
         type: Sequelize.BIGINT,
         allowNull: false,

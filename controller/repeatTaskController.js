@@ -4,10 +4,10 @@ const userModel = require("../model/userModel");
 const taskModel = require("../model/taskModel");
 const { Op } = require("sequelize");
 const { IncomingWebhook } = require("@slack/webhook");
-const cheerio = require("cheerio");
 const moment = require("moment");
-// const { toMarkdown } = require("slackify-html");
 const TurndownService = require("turndown");
+const cronWeekDays = require("../utils/corn");
+const repeatedTasks = require("../model/repetedTaskModel");
 
 // // htmal praser
 // function removeHTMLTags(html) {
@@ -21,8 +21,14 @@ const findTaskByUserId = async (userId, id) => {
 /* create tasks */
 const createTask = async (req, res) => {
     try {
-        const { title, description, task_frequency, status, dueDate } =
-            req.body;
+        const {
+            title,
+            description,
+            task_frequency,
+            status,
+            dueDate,
+            selectedDays,
+        } = req.body;
         const userId = req.user.id;
 
         let parsedDueDate = null;
@@ -48,6 +54,7 @@ const createTask = async (req, res) => {
             task_frequency,
             status,
             userId,
+            selectedDays,
             dueDate: parsedDueDate ? parsedDueDate.toDate() : null,
         });
 
@@ -58,9 +65,16 @@ const createTask = async (req, res) => {
             status,
             userId,
             task_frequency,
+            selectedDays,
             dueDate: parsedDueDate ? parsedDueDate.toDate() : null,
         });
 
+        // If selectedDays are provided, schedule the weekdays task
+        // if (selectedDays && selectedDays.length > 0) {
+        //     console.log("Scheduling weekdays task...");
+        //     const daysArray = selectedDays.split(",").map((day) => day.trim());
+        //     await cronWeekDays.scheduleWeekDays(daysArray);
+        // }
         res.status(201).json({
             status: "success",
             data: { ...data.toJSON(), dueDate: formattedDueDate },
@@ -354,6 +368,7 @@ const relationship = async (req, res) => {
 };
 
 /* cron for Daily Tasks*/
+
 // Create a new instance of TurndownService
 const turndownService = new TurndownService();
 // Add custom rules to handle specific HTML elements
@@ -381,7 +396,7 @@ turndownService.addRule("unorderedList", {
     filter: ["ul"],
     replacement: (content) => content.trim(),
 });
-async function createDailyTask(frequency, webhookUrl) {
+async function createDailyTask(frequency, webhookUrl, selectedDays) {
     try {
         console.log(`Starting createDailyTask for frequency: ${frequency}`);
         //  get today creatd task
@@ -412,7 +427,7 @@ async function createDailyTask(frequency, webhookUrl) {
                     userId: Task.userId,
                     createdAt: {
                         [Op.gte]: today, // Find tasks created today or later
-                        [Op.lt]: tenAMToday, //  before 10:00 AM today
+                        // [Op.lt]: tenAMToday, //  before 10:00 AM today
                     },
                 },
             });
@@ -420,10 +435,6 @@ async function createDailyTask(frequency, webhookUrl) {
             /*  if task not created today or not exists than creat e new task */
             if (!existingTask) {
                 const user = await userModel.findByPk(Task.userId);
-                // let title = Task.title.replace(/<\/?p>/g, "").trim(); // Remove <p> tags
-                // let description = Task.description
-                //     .replace(/<\/?p>/g, "")
-                //     .trim();
 
                 let title = Task.title;
                 let description = Task.description;
@@ -468,6 +479,32 @@ async function createDailyTask(frequency, webhookUrl) {
     }
 }
 
+async function fetchSelectedDays() {
+    try {
+        // Fetch selected days from the database
+        const repeatedTask = await repeatedTasks.findAll({
+            where: {
+                task_frequency: "weekDays",
+            },
+        });
+
+        const selectedDays = new Set();
+        // Extract unique selected days from the fetched data
+        repeatedTask.forEach((task) => {
+            if (task.selectedDays && task.selectedDays.length > 0) {
+                task.selectedDays.forEach((day) => {
+                    selectedDays.add(day.toLowerCase());
+                });
+            }
+        });
+
+        return Array.from(selectedDays);
+    } catch (error) {
+        console.error("Error fetching selected days:", error);
+        throw error; // Handle or propagate the error as needed
+    }
+}
+
 module.exports = {
     createTask,
     updateTaskById,
@@ -477,4 +514,5 @@ module.exports = {
     createDailyTask,
     deleteAllTasks,
     getAllAndFilterTask,
+    fetchSelectedDays,
 };
