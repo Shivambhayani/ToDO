@@ -42,6 +42,10 @@ const taskModel = db.define("tasks", {
         type: Sequelize.ARRAY(Sequelize.STRING),
         allowNull: true,
     },
+    duration: {
+        type: Sequelize.JSON, // JSON type for storing an object
+        allowNull: true,
+    },
     userId: {
         type: Sequelize.BIGINT,
         allowNull: false,

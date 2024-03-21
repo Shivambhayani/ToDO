@@ -6,13 +6,7 @@ const { Op } = require("sequelize");
 const { IncomingWebhook } = require("@slack/webhook");
 const moment = require("moment");
 const TurndownService = require("turndown");
-const cronWeekDays = require("../utils/corn");
 const repeatedTasks = require("../model/repetedTaskModel");
-
-// // htmal praser
-// function removeHTMLTags(html) {
-//     return html.replace(/<[^>]*>/g, "");
-// }
 
 const findTaskByUserId = async (userId, id) => {
     return await repetedTasks.findOne({ where: { id, userId } });
@@ -221,8 +215,14 @@ const updateTaskById = async (req, res) => {
             });
         }
 
-        const { title, description, task_frequency, status, dueDate } =
-            req.body;
+        const {
+            title,
+            description,
+            task_frequency,
+            status,
+            selectedDays,
+            dueDate,
+        } = req.body;
 
         if (title !== undefined) {
             repeatedTask.title = title;
@@ -235,6 +235,9 @@ const updateTaskById = async (req, res) => {
         }
         if (status !== undefined) {
             repeatedTask.status = status;
+        }
+        if (selectedDays !== undefined) {
+            repeatedTask.selectedDays = selectedDays;
         }
         if (dueDate !== undefined) {
             repeatedTask.dueDate = moment(dueDate, "DD/MM/YYYY").toDate();
@@ -396,10 +399,129 @@ turndownService.addRule("unorderedList", {
     filter: ["ul"],
     replacement: (content) => content.trim(),
 });
-async function createDailyTask(frequency, webhookUrl, selectedDays) {
+// async function createDailyTask(frequency, webhookUrl) {
+//     try {
+//         console.log(`Starting createDailyTask for frequency: ${frequency}`);
+//         //  get today creatd task
+//         const today = new Date();
+//         today.setHours(0, 0, 0, 0);
+
+//         const tenAMToday = new Date(today);
+//         tenAMToday.setHours(10, 0, 0, 0);
+
+//         const tomorrow = new Date(today);
+//         tomorrow.setDate(tomorrow.getDate() + 1);
+
+//         const repeatTask = await repetedTasks.findAll({
+//             where: {
+//                 task_frequency: frequency,
+//             },
+//         });
+
+//         if (!repeatTask || repeatTask.length === 0) {
+//             throw new Error("No users found in the database.");
+//         }
+
+//         // Create a new daily task for each tasks
+//         for (const Task of repeatTask) {
+//             // Check if a task has already been created for this user today
+//             const existingTask = await taskModel.findOne({
+//                 where: {
+//                     userId: Task.userId,
+//                     createdAt: {
+//                         // [Op.gte]: today, // Find tasks created today or later
+//                         // [Op.lt]: tenAMToday, //  before 10:00 AM today
+//                     },
+//                 },
+//             });
+
+//             /*  if task not created today or not exists than creat e new task */
+//             if (!existingTask) {
+//                 const user = await userModel.findByPk(Task.userId);
+
+//                 let title = Task.title;
+//                 let description = Task.description;
+
+//                 const createdTask = await taskModel.create({
+//                     title: title,
+//                     description: description,
+//                     task_frequency: Task.task_frequency,
+//                     userId: Task.userId,
+//                     selectedDays: Task.selectedDays,
+//                     dueDate: Task.dueDate,
+//                 });
+
+//                 console.log(
+//                     `${frequency} task created for task id:`,
+//                     Task.id,
+//                     createdTask
+//                 );
+//                 // Convert description to Slack-compatible format
+//                 const descriptionMarkdown =
+//                     turndownService.turndown(description);
+//                 // Send message to Slack channel
+//                 const webhook = new IncomingWebhook(webhookUrl);
+//                 await webhook.send({
+//                     text: `${frequency}Task schedular:`,
+//                     blocks: [
+//                         {
+//                             type: "section",
+//                             text: {
+//                                 type: "mrkdwn",
+//                                 text: `*${user.name}*\n*${Task.updatedAt}*\n\n*Title*: ${createdTask.title}\n*Description*:\n${descriptionMarkdown}`,
+//                             },
+//                         },
+//                     ],
+//                 });
+//             } else {
+//                 console.log(`${frequency} task alredy created:`, Task.id);
+//             }
+//         }
+
+//         console.log(`${frequency} tasks created for all users.`);
+//     } catch (error) {
+//         console.error(`Error creating ${frequency}task:`, error.message);
+//     }
+// }
+
+// async function fetchSelectedDays() {
+//     try {
+
+//         // Fetch selected days from the database
+//         const repeatTask = await repeatedTasks.findAll({
+//             where: {
+//                 task_frequency: "weekDays",
+//                 selectedDays: { [Op.ne]: null }, // Filter out tasks with no selected days
+//             },
+//         });
+
+//         const selectedDaysMap = new Map(); // Map to store selected days for each task
+
+//         // Extract selected days for each task and store in the map
+//         repeatTask.forEach((task) => {
+//             if (task.selectedDays && task.selectedDays.length > 0) {
+//                 selectedDaysMap.set(
+//                     task.id,
+//                     task.selectedDays.map((day) => day.toLowerCase())
+//                 );
+//             }
+//         });
+
+//         return selectedDaysMap;
+//     } catch (error) {
+//         console.error("Error fetching selected days:", error);
+//         throw error; // Handle or propagate the error as needed
+//     }
+// }
+
+async function createDailyTask(frequency, webhookUrl) {
     try {
         console.log(`Starting createDailyTask for frequency: ${frequency}`);
-        //  get today creatd task
+        // Get the current day abbreviation (e.g., 'mon', 'tue', etc.)
+        const todayAbbreviation = new Date()
+            .toLocaleString("en-us", { weekday: "short" })
+            .toLowerCase();
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -416,23 +538,35 @@ async function createDailyTask(frequency, webhookUrl, selectedDays) {
         });
 
         if (!repeatTask || repeatTask.length === 0) {
-            throw new Error("No users found in the database.");
+            throw new Error(
+                "No tasks found in the database for the specified frequency."
+            );
         }
 
-        // Create a new daily task for each tasks
-        for (const Task of repeatTask) {
+        // Filter tasks based on the current day when the frequency is "weekDays"
+        const tasksToProcess =
+            frequency === "weekDays"
+                ? repeatTask.filter(
+                      (task) =>
+                          task.selectedDays &&
+                          task.selectedDays.includes(todayAbbreviation)
+                  )
+                : repeatTask;
+
+        // Create a new daily task for each task to process
+        for (const Task of tasksToProcess) {
             // Check if a task has already been created for this user today
             const existingTask = await taskModel.findOne({
                 where: {
                     userId: Task.userId,
                     createdAt: {
-                        [Op.gte]: today, // Find tasks created today or later
+                        // [Op.gte]: today, // Find tasks created today or later
                         // [Op.lt]: tenAMToday, //  before 10:00 AM today
                     },
                 },
             });
 
-            /*  if task not created today or not exists than creat e new task */
+            /*  if task not created today or not exists than create a new task */
             if (!existingTask) {
                 const user = await userModel.findByPk(Task.userId);
 
@@ -444,6 +578,8 @@ async function createDailyTask(frequency, webhookUrl, selectedDays) {
                     description: description,
                     task_frequency: Task.task_frequency,
                     userId: Task.userId,
+                    selectedDays: Task.selectedDays,
+                    dueDate: Task.dueDate,
                 });
 
                 console.log(
@@ -457,7 +593,7 @@ async function createDailyTask(frequency, webhookUrl, selectedDays) {
                 // Send message to Slack channel
                 const webhook = new IncomingWebhook(webhookUrl);
                 await webhook.send({
-                    text: `${frequency}Task schedular:`,
+                    text: `${frequency}Task scheduler:`,
                     blocks: [
                         {
                             type: "section",
@@ -469,7 +605,7 @@ async function createDailyTask(frequency, webhookUrl, selectedDays) {
                     ],
                 });
             } else {
-                console.log(`${frequency} task alredy created:`, Task.id);
+                console.log(`${frequency} task already created:`, Task.id);
             }
         }
 
@@ -481,24 +617,35 @@ async function createDailyTask(frequency, webhookUrl, selectedDays) {
 
 async function fetchSelectedDays() {
     try {
-        // Fetch selected days from the database
-        const repeatedTask = await repeatedTasks.findAll({
+        // Get the current day abbreviation (e.g., 'mon', 'tue', etc.)
+        const todayAbbreviation = new Date()
+            .toLocaleString("en-us", { weekday: "short" })
+            .toLowerCase();
+
+        // Fetch tasks with 'weekDays' frequency and selectedDays not null
+        const repeatTask = await repeatedTasks.findAll({
             where: {
                 task_frequency: "weekDays",
+                selectedDays: { [Op.ne]: null }, // Filter out tasks with no selected days
             },
         });
 
-        const selectedDays = new Set();
-        // Extract unique selected days from the fetched data
-        repeatedTask.forEach((task) => {
-            if (task.selectedDays && task.selectedDays.length > 0) {
-                task.selectedDays.forEach((day) => {
-                    selectedDays.add(day.toLowerCase());
-                });
+        const selectedDaysMap = new Map(); // Map to store selected days for each task
+
+        // Extract selected days for each task and store in the map
+        repeatTask.forEach((task) => {
+            if (
+                task.selectedDays &&
+                task.selectedDays.includes(todayAbbreviation)
+            ) {
+                selectedDaysMap.set(
+                    task.id,
+                    [todayAbbreviation] // Store only the current day's abbreviation
+                );
             }
         });
 
-        return Array.from(selectedDays);
+        return selectedDaysMap;
     } catch (error) {
         console.error("Error fetching selected days:", error);
         throw error; // Handle or propagate the error as needed

@@ -38,6 +38,10 @@ const repeatedTasks = db.define("repeat_Tasks", {
         type: Sequelize.ARRAY(Sequelize.STRING),
         allowNull: true,
     },
+    duration: {
+        type: Sequelize.JSON, // JSON type for storing an object
+        allowNull: true,
+    },
     status: {
         type: Sequelize.ENUM("TODO", "IN-PROGRESS", "DONE"),
         defaultValue: "TODO",
