@@ -31,8 +31,7 @@ const repeatedTasks = db.define(
                 "weekDays",
                 "monthly",
                 "quarterly",
-                "yearly",
-                "custom"
+                "yearly"
             ),
             defaultValue: "daily",
         },

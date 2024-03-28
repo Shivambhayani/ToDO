@@ -11,8 +11,8 @@ const schedules = [
     { frequency: "Daily", pattern: "0 10 * * *" }, // Daily task at 10:00 AM every day
     { frequency: "Weekly", pattern: "05 10 * * 1" }, // Weekly task at 10:00 AM every Monday
     { frequency: "Monthly", pattern: "10 10 1-31 * *" }, // Monthly task at 10:00 AM on the 1st day of each month
-    { frequency: "Quarterly", pattern: "0 10 1 */3 *" }, // Quarterly task at 10:00 AM on the 1st day of every 3rd month
-    { frequency: "Yearly", pattern: "0 10 1 1 *" }, // Yearly task at 10:00 AM on the 1st day of January
+    { frequency: "Quarterly", pattern: "2 10 1 */3 *" }, // Quarterly task at 10:00 AM on the 1st day of every 3rd month
+    { frequency: "Yearly", pattern: "3 10 1 1 *" }, // Yearly task at 10:00 AM on the 1st day of January
 ];
 
 // Function to create a scheduled task

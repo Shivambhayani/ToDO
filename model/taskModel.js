@@ -36,8 +36,7 @@ const taskModel = db.define(
                 "weekDays",
                 "monthly",
                 "quarterly",
-                "yearly",
-                "custom"
+                "yearly"
             ),
         },
         selectedDays: {

@@ -881,7 +881,9 @@ async function getTasksToProcess(frequency, todayAbbreviation) {
 }
 
 async function processTask(task, frequency, webhookUrl) {
-    const tenAMToday = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tenAMToday = new Date(today);
     tenAMToday.setHours(10, 0, 0, 0);
 
     const existingTask = await taskModel.findOne({
