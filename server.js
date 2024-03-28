@@ -22,16 +22,8 @@ const taskModel = require("./model/taskModel.js");
 // });
 
 db.authenticate()
-    .then(() => console.log("sync succesfully 🎉😎"))
-    .catch((e) => console.log("Error in syncing 😌", e));
-
-//  models
-// const taskModel = require("./model/taskModel.js");
-
-// taskModel;
-// repeatedTasks;
-// const userModel = require("./model/userModel.js");
-// userModel;
+    .then(() => console.log("DB Connection succesfully 🎉😎"))
+    .catch((e) => console.log("Error in DB Connection 😌", e));
 
 const port = process.env.PORT || 3000;
 

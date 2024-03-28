@@ -24,11 +24,15 @@ const verifyToken = async (req, res, next) => {
     try {
         const authorizationHeader = req.header("Authorization");
         if (!authorizationHeader) {
-            return res.status(402).json({ message: "No token provided!" });
+            return res
+                .status(402)
+                .json({ status: "fail", message: "No token provided!" });
         }
         const token = authorizationHeader.replace("Bearer", "").trim();
         if (!token) {
-            return res.status(402).json({ message: "Invalid token provided!" });
+            return res
+                .status(402)
+                .json({ status: "fail", message: "Invalid token provided!" });
         }
         // console.log('token =>>>>', token);
         const decoded = jwt.verify(token, process.env.ACESS_TOKEN);
@@ -40,12 +44,18 @@ const verifyToken = async (req, res, next) => {
         next();
     } catch (err) {
         if (err.name === "JsonWebTokenError") {
-            return res.status(401).json({ message: "Invalid token" });
+            return res
+                .status(401)
+                .json({ status: "fail", message: "Invalid token" });
         } else if (err.name === "TokenExpiredError") {
-            return res.status(401).json({ message: "Token expired" });
+            return res
+                .status(401)
+                .json({ status: "fail", message: "Token expired" });
         }
         console.error("Error verifying token:", err);
-        return res.status(500).json({ message: "Internal server error" });
+        return res
+            .status(500)
+            .json({ status: "fail", message: "Internal server error" });
     }
 };
 

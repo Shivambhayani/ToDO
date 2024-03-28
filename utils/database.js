@@ -13,7 +13,7 @@ const db = new Sequelize("to_do", "shivam01.tst", "wUaMup0x2hoG", {
     },
     sslmode: "require",
     pool: {
-        max: 5,
+        max: 10,
         min: 0,
         idle: 10000,
     },

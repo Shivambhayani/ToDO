@@ -63,16 +63,16 @@ const createTask = async (req, res) => {
     } catch (error) {
         // Check if the error is a Sequelize validation error
         if (error.name === "SequelizeValidationError") {
-            // Extract the first validation error message from the array
-            const errorMessage = error.errors[0].message;
+            // Extract all validation error messages
+            const errorMessages = error.errors.map((err) => err.message);
             return res.status(400).json({
                 status: "fail",
-                message: errorMessage, // Send the validation error message
+                messages: errorMessages, // Send all validation error messages
             });
         } else {
             return res.status(500).json({
                 status: "fail",
-                messages: "An error occurred while creating the task.",
+                message: "An error occurred while creating the task.",
                 error: error.message,
             });
         }
@@ -104,6 +104,13 @@ const relationship = async (req, res) => {
 
 /*  get task by id */
 
+const getUserTasks = async (userId, queryObj = {}) => {
+    if (!userId) return []; // If userId is not provided, return an empty array
+    const whereClause = { userId, ...queryObj };
+    return await tasks.findAll({
+        where: whereClause,
+    });
+};
 const getTaskById = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -154,17 +161,19 @@ const getAllAndFilterTask = async (req, res) => {
             queryObj.task_frequency = task_frequency;
         }
 
-        let data;
-        if (Object.keys(queryObj).length === 0) {
-            data = await tasks.findAll({ where: { userId } });
-        } else {
-            data = await tasks.findAll({
-                where: {
-                    userId: userId,
-                    ...queryObj,
-                },
-            });
-        }
+        // let data;
+        // if (Object.keys(queryObj).length === 0) {
+        //     data = await tasks.findAll({ where: { userId } });
+        // } else {
+        //     data = await tasks.findAll({
+        //         where: {
+        //             userId: userId,
+        //             ...queryObj,
+        //         },
+        //     });
+        // }
+
+        const data = await getUserTasks(userId, queryObj);
         const formattedData = data.map((task) => {
             return {
                 ...task.toJSON(),
