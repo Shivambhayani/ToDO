@@ -8,7 +8,7 @@ dotenv.config();
 const webhookUrl = process.env.WEBHOOK_URL;
 
 const schedules = [
-    { frequency: "Daily", pattern: "47 10 * * *" }, // Daily task at 10:00 AM every day
+    { frequency: "Daily", pattern: "0 10 * * *" }, // Daily task at 10:00 AM every day
     { frequency: "Weekly", pattern: "05 10 * * 1" }, // Weekly task at 10:00 AM every Monday
     { frequency: "Monthly", pattern: "10 10 1-31 * *" }, // Monthly task at 10:00 AM on the 1st day of each month
     { frequency: "Quarterly", pattern: "2 10 1 */3 *" }, // Quarterly task at 10:00 AM on the 1st day of every 3rd month
