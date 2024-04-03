@@ -69,7 +69,7 @@ const login = async (req, res) => {
             // Login with Google using Firebase
             const { name, email } = await signInWithGoogle(googleIdToken);
             let user = await User.findOne({ where: { email } });
-            console.log("email:", email);
+            // console.log("email:", email);
 
             if (!user) {
                 user = await User.create({
